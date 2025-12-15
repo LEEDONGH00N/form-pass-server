@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Form PASS - 회원가입</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>회원가입</h1>
+
+        <div class="input-group">
+            <label>이메일</label>
+            <div class="flex-row">
+                <input type="email" id="email" placeholder="example@email.com">
+                <button type="button" id="sendBtn" class="btn" style="width: 80px; margin:0; padding:10px; font-size:13px;" onclick="sendEmail()">전송</button>
+            </div>
+        </div>
+
+        <div id="verifySection" class="input-group hidden">
+            <label>인증번호</label>
+            <div class="flex-row">
+                <input type="text" id="authCode" placeholder="6자리 코드" maxlength="6">
+                <span id="timer" class="timer-text">05:00</span>
+                <button type="button" class="btn btn-outline" style="width: 60px; margin:0; padding:8px; font-size:12px;" onclick="resendEmail()">재전송</button>
+            </div>
+            <button type="button" class="btn" style="margin-top: 8px;" onclick="verifyCode()">인증 확인</button>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
+
+        <div class="input-group">
+            <label>이름</label>
+            <input type="text" id="name" placeholder="홍길동" disabled>
+        </div>
+        <div class="input-group">
+            <label>비밀번호</label>
+            <input type="password" id="password" placeholder="비밀번호 입력" disabled>
+        </div>
+
+        <button type="button" id="signupBtn" class="btn" onclick="signup()" disabled>가입하기</button>
+
+        <div class="footer-link">
+            이미 회원이신가요? <a href="login.html">로그인</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BASE_URL = "http://localhost:8080";
+    let timerInterval;
+    let isVerified = false;
+
+    // 1. 인증 메일 전송
+    async function sendEmail() {
+        const email = document.getElementById('email').value;
+        if (!email) { alert("이메일을 입력해주세요."); return; }
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/auth/email/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            if (res.ok) {
+                alert("인증 메일이 발송되었습니다!");
+                document.getElementById('verifySection').classList.remove('hidden');
+                document.getElementById('email').disabled = true; // 이메일 수정 불가
+                document.getElementById('sendBtn').disabled = true;
+                startTimer(300); // 5분 타이머 시작
+            } else {
+                alert("메일 발송 실패. 다시 시도해주세요.");
+            }
+        } catch (e) { console.error(e); alert("서버 에러 발생"); }
+    }
+
+    // 2. 재전송
+    function resendEmail() {
+        clearInterval(timerInterval); // 기존 타이머 중지
+        sendEmail(); // 다시 전송 로직 수행 (타이머도 다시 시작됨)
+    }
+
+    // 3. 인증번호 확인
+    async function verifyCode() {
+        const email = document.getElementById('email').value;
+        const authCode = document.getElementById('authCode').value;
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/auth/email/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, authCode })
+            });
+
+            if (res.ok) {
+                alert("인증되었습니다! ✅");
+                clearInterval(timerInterval);
+                document.getElementById('timer').innerText = "완료";
+                document.getElementById('verifySection').innerHTML = '<p style="color:green; font-weight:bold; font-size:14px; margin-top:10px;">✅ 이메일 인증 완료</p>';
+
+                // 입력창 활성화
+                document.getElementById('name').disabled = false;
+                document.getElementById('password').disabled = false;
+                document.getElementById('signupBtn').disabled = false;
+                isVerified = true;
+            } else {
+                alert("인증번호가 틀렸거나 만료되었습니다.");
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    // 4. 타이머 로직 (5분)
+    function startTimer(duration) {
+        let timer = duration, minutes, seconds;
+        const display = document.getElementById('timer');
+
+        clearInterval(timerInterval); // 혹시 모를 중복 방지
+
+        timerInterval = setInterval(function () {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            display.textContent = minutes + ":" + seconds;
+
+            if (--timer < 0) {
+                clearInterval(timerInterval);
+                display.textContent = "만료";
+                alert("인증 시간이 만료되었습니다. 재전송해주세요.");
+            }
+        }, 1000);
+    }
+
+    // 5. 최종 회원가입
+    async function signup() {
+        if(!isVerified) return;
+
+        const email = document.getElementById('email').value;
+        const name = document.getElementById('name').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/auth/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, name, password })
+            });
+
+            if (res.ok) {
+                alert("회원가입 성공! 로그인 페이지로 이동합니다.");
+                window.location.href = "login.html";
+            } else {
+                const msg = await res.text(); // 에러 메시지
+                alert("가입 실패: " + msg);
+            }
+        } catch (e) { console.error(e); }
+    }
+</script>
+</body>
+</html>

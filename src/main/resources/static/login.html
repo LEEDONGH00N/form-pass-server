@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form PASS - 로그인</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>Form PASS</h1>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label>이메일</label>
+                <input type="email" id="email" placeholder="example@email.com" required>
+            </div>
+            <div class="input-group">
+                <label>비밀번호</label>
+                <input type="password" id="password" placeholder="비밀번호 입력" required>
+            </div>
+            <button type="submit" class="btn">로그인</button>
+        </form>
+
+        <div class="footer-link">
+            회원이 아니신가요?
+            <a href="signup.html">회원가입</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BASE_URL = "http://localhost:8080"; // 서버 주소
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch(`${BASE_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert("로그인 성공! 환영합니다.");
+                // HttpOnly 쿠키를 아직 안 쓴다면 여기서 토큰 저장 로직 필요 (localStorage 등)
+                // localStorage.setItem('accessToken', data.accessToken);
+                console.log(data);
+            } else {
+                alert("로그인 실패: 이메일이나 비밀번호를 확인해주세요.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("서버 연결에 실패했습니다.");
+        }
+    });
+</script>
+</body>
+</html>

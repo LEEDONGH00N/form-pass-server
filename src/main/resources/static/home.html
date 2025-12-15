@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form PASS | 홈</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+        body { font-family: 'Pretendard', sans-serif; }
+
+        /* 텍스트 그라데이션 효과 */
+        .text-gradient {
+            background: linear-gradient(to right, #4f46e5, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 둥둥 떠있는 애니메이션 */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        .floating { animation: float 4s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-white text-gray-900 overflow-x-hidden">
+
+<nav class="fixed w-full z-50 top-0 start-0 border-b border-gray-200 bg-white/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+        <a href="index.html" class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                <i class="fa-solid fa-ticket"></i>
+            </div>
+            <span class="text-2xl font-extrabold text-gray-900 tracking-tight">Form PASS</span>
+        </a>
+
+        <div class="flex items-center space-x-2 md:space-x-6">
+
+            <div id="guest-menu" class="flex items-center gap-4">
+                <a href="login.html" class="text-gray-600 font-medium hover:text-indigo-600 transition">로그인</a>
+                <button onclick="handleStart()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-indigo-700 transition shadow-md hover:shadow-lg">
+                    바로 시작하기
+                </button>
+            </div>
+
+            <div id="user-menu" class="hidden relative">
+                <button onclick="toggleDropdown()" class="flex items-center gap-2 focus:outline-none">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg border border-indigo-200 hover:bg-indigo-200 transition">
+                        MY </div>
+                </button>
+
+                <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 animate-fade-in-down">
+                    <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-indigo-600 transition">
+                        <i class="fa-solid fa-calendar-check mr-2"></i>내 예약
+                    </a>
+                    <div class="border-t border-gray-100 my-1"></div>
+                    <button onclick="logout()" class="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-50 transition">
+                        <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>로그아웃
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+<header class="pt-40 pb-20 px-6 overflow-hidden">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
+
+        <div class="flex-1 text-center md:text-left z-10">
+            <div class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-bold mb-6 border border-indigo-100">
+                <span class="flex h-2 w-2 rounded-full bg-indigo-600"></span>
+                🚀 베타 서비스 오픈
+            </div>
+            <h1 class="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
+                선착순 마감부터<br>
+                <span class="text-gradient">입장 QR 체크인까지.</span>
+            </h1>
+            <p class="text-xl text-gray-500 mb-10 leading-relaxed">
+                구글 폼의 간편함에 <strong>강력한 예약 관리</strong>를 더했습니다.<br>
+                대학 축제, 팝업 스토어, 원데이 클래스를 위한 최고의 솔루션.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center md:justify-start gap-4">
+                <a href="signup.html" class="bg-indigo-600 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-xl hover:bg-indigo-700 transition transform hover:-translate-y-1 text-center">
+                    지금 무료로 만들기
+                </a>
+                <button class="bg-white border border-gray-200 text-gray-700 px-8 py-4 rounded-xl text-lg font-bold hover:bg-gray-50 transition text-center">
+                    데모 체험하기
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 relative flex justify-center">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+            <div class="absolute bottom-0 left-10 w-96 h-96 bg-violet-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+
+            <div class="relative w-72 h-[550px] bg-gray-900 rounded-[3rem] border-8 border-gray-900 shadow-2xl floating overflow-hidden">
+                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-xl z-20"></div>
+
+                <div class="w-full h-full bg-white pt-12 px-6 flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center mb-8">
+                        <i class="fa-solid fa-chevron-left text-gray-400"></i>
+                        <span class="font-bold text-gray-800">내 티켓</span>
+                        <i class="fa-solid fa-ellipsis-vertical text-gray-400"></i>
+                    </div>
+
+                    <div class="w-full bg-indigo-600 rounded-2xl p-6 text-white shadow-lg text-center relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-20 h-20 bg-white opacity-10 rounded-full transform translate-x-8 -translate-y-8"></div>
+
+                        <span class="bg-white/20 text-xs font-bold px-2 py-1 rounded mb-3 inline-block">VIP PASS</span>
+                        <h3 class="text-xl font-bold mb-1">2025 대동제</h3>
+                        <p class="text-indigo-200 text-sm mb-6">05. 24(금) 18:00 입장</p>
+
+                        <div class="bg-white p-3 rounded-xl mx-auto w-32 h-32 flex items-center justify-center mb-4">
+                            <i class="fa-solid fa-qrcode text-6xl text-gray-800"></i>
+                        </div>
+                        <p class="text-xs text-indigo-200">입장 시 직원에게 보여주세요</p>
+                    </div>
+
+                    <div class="w-full mt-6 space-y-3">
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <div class="text-sm">
+                                <p class="font-bold text-gray-800">예약 확정</p>
+                                <p class="text-gray-500">결제가 완료되었습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<section class="max-w-7xl mx-auto px-6 mt-10 mb-32">
+    <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold mb-4">왜 Form PASS인가요?</h2>
+        <p class="text-gray-500">복잡한 엑셀 정리와 입장 확인, 이제 그만하세요.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+        <div class="p-8 rounded-3xl bg-white border border-gray-100 shadow-lg hover:shadow-xl transition duration-300 hover:-translate-y-2 group">
+            <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl text-indigo-600 mb-6 group-hover:bg-indigo-600 group-hover:text-white transition">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-3">칼 같은 선착순 마감</h3>
+            <p class="text-gray-500 leading-relaxed">
+                정원이 차면 폼이 자동으로 닫힙니다.<br>
+                오버부킹으로 인한 엑셀 정리 지옥에서<br>완벽하게 탈출하세요.
+            </p>
+        </div>
+
+        <div class="p-8 rounded-3xl bg-white border border-gray-100 shadow-lg hover:shadow-xl transition duration-300 hover:-translate-y-2 group">
+            <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl text-indigo-600 mb-6 group-hover:bg-indigo-600 group-hover:text-white transition">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-3">내 맘대로 질문 설계</h3>
+            <p class="text-gray-500 leading-relaxed">
+                이름, 연락처는 기본.<br>
+                학번, 알레르기 유무, 티셔츠 사이즈 등<br>행사 성격에 맞는 질문을 추가하세요.
+            </p>
+        </div>
+
+        <div class="p-8 rounded-3xl bg-white border border-gray-100 shadow-lg hover:shadow-xl transition duration-300 hover:-translate-y-2 group">
+            <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl text-indigo-600 mb-6 group-hover:bg-indigo-600 group-hover:text-white transition">
+                <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-3">1초 QR 입장 스캔</h3>
+            <p class="text-gray-500 leading-relaxed">
+                종이 명단 찾지 마세요.<br>
+                관리자 페이지에서 카메라만 켜면<br>QR 코드로 즉시 입장이 완료됩니다.
+            </p>
+        </div>
+    </div>
+</section>
+
+<footer class="bg-gray-50 border-t border-gray-200 mt-20 py-20 text-center">
+    <div class="max-w-3xl mx-auto px-6">
+        <h2 class="text-3xl font-bold mb-6">지금 바로 행사를 시작하세요.</h2>
+        <p class="text-gray-500 mb-10 text-lg">
+            3분이면 충분합니다. 복잡한 개발 없이,<br>
+            가장 완벽한 예약 시스템을 무료로 경험해보세요.
+        </p>
+        <a href="signup.html" class="inline-block bg-gray-900 text-white px-10 py-4 rounded-xl text-lg font-bold hover:bg-gray-800 transition shadow-lg">
+            무료로 시작하기
+        </a>
+    </div>
+</footer>
+
+</body>
+</html>
