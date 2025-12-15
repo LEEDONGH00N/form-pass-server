@@ -24,8 +24,8 @@ src/main/resources/*.yaml
 src/main/resources/*.properties
 
 # 혹시 최상위에 뒀을 경우를 대비해 추가
-application*.yml
-application*.yaml
+application-dev.yml
+application-local.yml
 
 ### IntelliJ IDEA ###
 .idea
