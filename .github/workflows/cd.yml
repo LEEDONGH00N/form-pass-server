@@ -61,4 +61,5 @@ jobs:
 
             # 홈으로 돌아가서 실행 스크립트 가동
             cd ~
+            chmod +x run.sh
             ./run.sh
