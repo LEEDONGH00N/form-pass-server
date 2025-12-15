@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: ticket-form-test
+
+  # 1. 테스트용 가짜 DB (H2) 설정
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # 테스트 시작 때 만들고 끝나면 다 삭제
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  # 2. 메일 설정 (가짜 값 - 실제 전송 안 함)
+  mail:
+    host: localhost
+    port: 1025
+    username: test-user
+    password: test-password
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+# 3. JWT 설정 (테스트용 임의의 키)
+jwt:
+  # 32자 이상의 아무 문자열이나 넣으면 됩니다.
+  secret: "testsecretkeyforunittestingonly1234567890"
+  expiration: 3600000
+
+logging:
+  level:
+    root: INFO
