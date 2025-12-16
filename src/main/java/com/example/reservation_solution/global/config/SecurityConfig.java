@@ -56,7 +56,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",          // 로컬 개발용
                 "https://www.form-pass.life",     // 배포된 프론트엔드 (www)
-                "https://form-pass.life"          // 배포된 프론트엔드 (root)
+                "https://form-pass.life",
+                "https://form-pass-client.vercel.app"// 배포된 프론트엔드 (root)
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
