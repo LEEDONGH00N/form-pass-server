@@ -15,6 +15,7 @@ public class EventResponse {
     private String location;
     private String thumbnailUrl;
     private String description;
+    private String eventCode;
     private List<ScheduleResponse> schedules;
     private List<QuestionResponse> questions;
 
@@ -25,6 +26,7 @@ public class EventResponse {
                 event.getLocation(),
                 event.getThumbnailUrl(),
                 event.getDescription(),
+                event.getEventCode(),
                 event.getSchedules().stream()
                         .map(ScheduleResponse::from)
                         .collect(Collectors.toList()),

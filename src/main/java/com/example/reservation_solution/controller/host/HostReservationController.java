@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "Reservation Host", description = "호스트 예약 관리 API")
 @RestController
 @RequestMapping("/api/host")
@@ -103,6 +105,20 @@ public class HostReservationController {
             @AuthenticationPrincipal HostUserDetails userDetails) {
         String email = userDetails.getUsername();
         CheckinResponse response = hostReservationService.checkin(request, email);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "스케줄별 예약 현황 조회", description = "이벤트의 모든 스케줄과 각 스케줄별 예약자 리스트를 한 번에 조회합니다. (대시보드 칸반 보드용)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "이벤트를 찾을 수 없음")
+    })
+    @GetMapping("/events/{eventId}/schedules-status")
+    public ResponseEntity<List<ScheduleStatusResponse>> getScheduleStatus(
+            @PathVariable Long eventId,
+            @AuthenticationPrincipal HostUserDetails userDetails) {
+        String email = userDetails.getUsername();
+        List<ScheduleStatusResponse> response = hostReservationService.getScheduleStatus(eventId, email);
         return ResponseEntity.ok(response);
     }
 }

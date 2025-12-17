@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -142,6 +143,38 @@ public class HostReservationService {
                 reservation.getGuestName(),
                 reservation.getTicketCount()
         );
+    }
+
+    public List<ScheduleStatusResponse> getScheduleStatus(Long eventId, String hostEmail) {
+        Event event = validateHostOwnership(eventId, hostEmail);
+
+        // 이벤트의 모든 스케줄을 순회하며 각 스케줄별 예약 현황을 수집
+        return event.getSchedules().stream()
+                .map(schedule -> {
+                    // 해당 스케줄의 CONFIRMED 상태 예약 목록 조회
+                    List<Reservation> reservations = reservationRepository
+                            .findByEventScheduleIdAndStatus(schedule.getId(), ReservationStatus.CONFIRMED);
+
+                    // SimpleReservationDto 리스트로 변환
+                    List<SimpleReservationDto> reservationDtos = reservations.stream()
+                            .map(SimpleReservationDto::from)
+                            .collect(Collectors.toList());
+
+                    // 현재 예약 인원 계산 (ticketCount의 합)
+                    Integer currentCount = reservations.stream()
+                            .mapToInt(Reservation::getTicketCount)
+                            .sum();
+
+                    return new ScheduleStatusResponse(
+                            schedule.getId(),
+                            schedule.getStartTime().toString(),
+                            schedule.getEndTime().toString(),
+                            schedule.getMaxCapacity(),
+                            currentCount,
+                            reservationDtos
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     private Event validateHostOwnership(Long eventId, String hostEmail) {

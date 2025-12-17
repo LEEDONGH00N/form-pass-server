@@ -37,3 +37,13 @@ jwt:
 logging:
   level:
     root: INFO
+
+cloud:
+  aws:
+    s3:
+      bucket: test-bucket
+    region:
+      s3: ap-test-223
+    credentials:
+      access-key: testaccesskey
+      secret-key: testsecretkey

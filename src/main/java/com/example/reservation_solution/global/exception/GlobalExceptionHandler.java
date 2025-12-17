@@ -24,8 +24,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
-        ErrorResponse response = ErrorResponse.of(HttpStatus.FORBIDDEN.value(), "접근 권한이 없습니다");
-        log.error("AccessDeniedException occurred", e);
+        // 예외 메시지를 그대로 사용하여 명확한 에러 정보 제공
+        String message = e.getMessage() != null ? e.getMessage() : "접근 권한이 없습니다";
+        ErrorResponse response = ErrorResponse.of(HttpStatus.FORBIDDEN.value(), message);
+        log.error("AccessDeniedException occurred: {}", message);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
