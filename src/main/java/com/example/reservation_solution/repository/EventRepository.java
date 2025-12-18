@@ -17,4 +17,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "LEFT JOIN FETCH e.schedules " +
             "WHERE e.id = :eventId")
     Optional<Event> findByIdWithDetails(@Param("eventId") Long eventId);
+
+    @Query("SELECT e FROM Event e " +
+            "LEFT JOIN FETCH e.schedules " +
+            "WHERE e.eventCode = :eventCode")
+    Optional<Event> findByEventCodeWithDetails(@Param("eventCode") String eventCode);
+
+    boolean existsByEventCode(String eventCode);
 }

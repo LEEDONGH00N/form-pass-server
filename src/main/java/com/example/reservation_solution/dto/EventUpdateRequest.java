@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateEventRequest {
+public class EventUpdateRequest {
 
     @NotBlank(message = "행사명은 필수입니다")
     private String title;

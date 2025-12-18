@@ -2,6 +2,8 @@ package com.example.reservation_solution.controller.host;
 
 import com.example.reservation_solution.dto.CreateEventRequest;
 import com.example.reservation_solution.dto.EventResponse;
+import com.example.reservation_solution.dto.EventUpdateRequest;
+import com.example.reservation_solution.dto.EventVisibilityRequest;
 import com.example.reservation_solution.global.security.HostUserDetails;
 import com.example.reservation_solution.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,5 +69,39 @@ public class EventController {
         String email = userDetails.getUsername();
         EventResponse response = eventService.getEventDetail(eventId, email);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "이벤트 수정", description = "기존 이벤트의 정보를 수정합니다. (본인 이벤트만 수정 가능)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "수정 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "이벤트를 찾을 수 없음")
+    })
+    @PutMapping("/{eventId}")
+    public ResponseEntity<EventResponse> updateEvent(
+            @PathVariable Long eventId,
+            @Valid @RequestBody EventUpdateRequest request,
+            @AuthenticationPrincipal HostUserDetails userDetails) {
+        String email = userDetails.getUsername();
+        EventResponse response = eventService.updateEvent(eventId, email, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "이벤트 공개 여부 변경", description = "이벤트의 공개/비공개 상태를 변경합니다. (본인 이벤트만 수정 가능)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "변경 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "이벤트를 찾을 수 없음")
+    })
+    @PatchMapping("/{eventId}/visibility")
+    public ResponseEntity<Void> updateEventVisibility(
+            @PathVariable Long eventId,
+            @Valid @RequestBody EventVisibilityRequest request,
+            @AuthenticationPrincipal HostUserDetails userDetails) {
+        String email = userDetails.getUsername();
+        eventService.updateVisibility(eventId, email, request.getIsPublic());
+        return ResponseEntity.ok().build();
     }
 }

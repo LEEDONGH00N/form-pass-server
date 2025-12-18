@@ -1,5 +1,7 @@
 package com.example.reservation_solution.controller.guest;
 
+import com.example.reservation_solution.dto.ReservationLookupRequest;
+import com.example.reservation_solution.dto.ReservationLookupResponse;
 import com.example.reservation_solution.dto.ReservationRequest;
 import com.example.reservation_solution.dto.ReservationResponse;
 import com.example.reservation_solution.service.ReservationService;
@@ -11,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "Reservation Guest", description = "게스트 예약 관리 API (Public)")
 @RestController
@@ -64,5 +68,18 @@ public class ReservationController {
     public ResponseEntity<Void> cancelReservation(@PathVariable Long id) {
         reservationService.cancelReservation(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "예약 내역 조회", description = "이름과 전화번호로 예약 내역을 조회합니다. 결과가 없으면 빈 배열을 반환합니다. (인증 불필요)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공 (결과 없으면 빈 배열)")
+    })
+    @PostMapping("/lookup")
+    public ResponseEntity<List<ReservationLookupResponse>> lookupReservations(@RequestBody ReservationLookupRequest request) {
+        List<ReservationLookupResponse> responses = reservationService.lookupReservations(
+                request.getGuestName(),
+                request.getGuestPhoneNumber()
+        );
+        return ResponseEntity.ok(responses);
     }
 }

@@ -22,13 +22,17 @@ public class Event extends BaseTimeEntity {
     @Column(nullable = false)
     private String title;
 
-    private String thumbnailUrl;
-
     @Column(nullable = false)
     private String location;
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(unique = true, nullable = false, length = 10)
+    private String eventCode;
+
+    @Column(nullable = false)
+    private Boolean isPublic = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "host_id", nullable = false)
@@ -40,13 +44,16 @@ public class Event extends BaseTimeEntity {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FormQuestion> questions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventImage> images = new ArrayList<>();
+
     @Builder
-    public Event(Host host, String title, String thumbnailUrl, String location, String description) {
+    public Event(Host host, String title, String location, String description, String eventCode) {
         this.host = host;
         this.title = title;
-        this.thumbnailUrl = thumbnailUrl;
         this.location = location;
         this.description = description;
+        this.eventCode = eventCode;
     }
 
     public void addSchedule(EventSchedule schedule) {
@@ -59,13 +66,39 @@ public class Event extends BaseTimeEntity {
         question.assignEvent(this);
     }
 
-    public static Event create(Host host, String title, String thumbnailUrl, String location, String description) {
+    public void addImage(EventImage image) {
+        this.images.add(image);
+        image.assignEvent(this);
+    }
+
+    public static Event create(Host host, String title, String location, String description) {
         return Event.builder()
                 .host(host)
                 .title(title)
-                .thumbnailUrl(thumbnailUrl)
                 .location(location)
                 .description(description)
                 .build();
+    }
+
+    public void updateBasicInfo(String title, String location, String description) {
+        this.title = title;
+        this.location = location;
+        this.description = description;
+    }
+
+    public void clearSchedules() {
+        this.schedules.clear();
+    }
+
+    public void clearQuestions() {
+        this.questions.clear();
+    }
+
+    public void clearImages() {
+        this.images.clear();
+    }
+
+    public void updateVisibility(Boolean isPublic) {
+        this.isPublic = isPublic;
     }
 }
