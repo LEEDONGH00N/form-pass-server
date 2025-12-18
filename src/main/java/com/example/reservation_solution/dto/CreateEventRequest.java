@@ -20,7 +20,7 @@ public class CreateEventRequest {
     @NotBlank(message = "장소는 필수입니다")
     private String location;
 
-    private String thumbnailUrl;
+    private List<String> images;
 
     private String description;
 

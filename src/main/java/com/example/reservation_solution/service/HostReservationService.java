@@ -52,27 +52,52 @@ public class HostReservationService {
         return new DashboardResponse(totalSeats, reservedCount, reservationRate, checkedInCount, availableSeats);
     }
 
-    public Page<ReservationListResponse> getReservationList(Long eventId, Long scheduleId, String hostEmail, Pageable pageable) {
+    public Page<ReservationListResponse> getReservationList(Long eventId, Long scheduleId, String searchKeyword, String hostEmail, Pageable pageable) {
         Event event = validateHostOwnership(eventId, hostEmail);
 
         Page<Reservation> reservations;
-        if (scheduleId != null) {
-            // 특정 스케줄 필터링
-            EventSchedule schedule = eventScheduleRepository.findById(scheduleId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
 
-            if (!schedule.getEvent().getId().equals(eventId)) {
-                throw new IllegalArgumentException("해당 스케줄은 이 이벤트에 속하지 않습니다.");
+        // 검색 키워드가 있는 경우
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            String keyword = searchKeyword.trim();
+            if (scheduleId != null) {
+                // 특정 스케줄 + 검색
+                EventSchedule schedule = eventScheduleRepository.findById(scheduleId)
+                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
+
+                if (!schedule.getEvent().getId().equals(eventId)) {
+                    throw new IllegalArgumentException("해당 스케줄은 이 이벤트에 속하지 않습니다.");
+                }
+
+                reservations = reservationRepository.findByEventScheduleIdAndKeyword(scheduleId, keyword, pageable);
+            } else {
+                // 전체 스케줄 + 검색
+                List<Long> scheduleIds = event.getSchedules().stream()
+                        .map(EventSchedule::getId)
+                        .toList();
+
+                reservations = reservationRepository.findByEventScheduleIdInAndKeyword(scheduleIds, keyword, pageable);
             }
-
-            reservations = reservationRepository.findByEventScheduleId(scheduleId, pageable);
         } else {
-            // 전체 예약 조회
-            List<Long> scheduleIds = event.getSchedules().stream()
-                    .map(EventSchedule::getId)
-                    .toList();
+            // 검색 키워드가 없는 경우 (기존 로직)
+            if (scheduleId != null) {
+                // 특정 스케줄 필터링
+                EventSchedule schedule = eventScheduleRepository.findById(scheduleId)
+                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
 
-            reservations = reservationRepository.findByEventScheduleIdIn(scheduleIds, pageable);
+                if (!schedule.getEvent().getId().equals(eventId)) {
+                    throw new IllegalArgumentException("해당 스케줄은 이 이벤트에 속하지 않습니다.");
+                }
+
+                reservations = reservationRepository.findByEventScheduleId(scheduleId, pageable);
+            } else {
+                // 전체 예약 조회
+                List<Long> scheduleIds = event.getSchedules().stream()
+                        .map(EventSchedule::getId)
+                        .toList();
+
+                reservations = reservationRepository.findByEventScheduleIdIn(scheduleIds, pageable);
+            }
         }
 
         return reservations.map(ReservationListResponse::from);
@@ -118,6 +143,37 @@ public class HostReservationService {
     public CheckinResponse checkin(CheckinRequest request, String hostEmail) {
         Reservation reservation = reservationRepository.findByQrToken(request.getQrToken())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 QR 토큰입니다."));
+
+        // 호스트 권한 확인
+        Event event = reservation.getEventSchedule().getEvent();
+        if (!event.getHost().getEmail().equals(hostEmail)) {
+            throw new IllegalArgumentException("해당 예약에 대한 권한이 없습니다.");
+        }
+
+        // 이미 입장했는지 확인
+        if (reservation.getIsCheckedIn()) {
+            throw new IllegalStateException("이미 입장 완료된 티켓입니다.");
+        }
+
+        // 취소된 예약인지 확인
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new IllegalStateException("취소된 예약입니다.");
+        }
+
+        // 체크인 처리
+        reservation.checkIn();
+
+        return new CheckinResponse(
+                "입장 완료",
+                reservation.getGuestName(),
+                reservation.getTicketCount()
+        );
+    }
+
+    @Transactional
+    public CheckinResponse manualCheckin(Long reservationId, String hostEmail) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다."));
 
         // 호스트 권한 확인
         Event event = reservation.getEventSchedule().getEvent();

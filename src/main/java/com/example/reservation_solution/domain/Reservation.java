@@ -24,10 +24,8 @@ public class Reservation extends BaseTimeEntity {
     @JoinColumn(name = "event_schedule_id", nullable = false)
     private EventSchedule eventSchedule;
 
-    @Column(nullable = false)
     private String guestName;
 
-    @Column(nullable = false)
     private String guestPhoneNumber;
 
     @Column(nullable = false)

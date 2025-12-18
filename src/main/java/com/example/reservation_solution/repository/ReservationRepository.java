@@ -34,4 +34,28 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @EntityGraph(attributePaths = {"eventSchedule", "formAnswers", "formAnswers.formQuestion"})
     @Query("select r from Reservation r where r.id = :id")
     Optional<Reservation> findByIdWithDetails(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {"eventSchedule", "eventSchedule.event", "formAnswers", "formAnswers.formQuestion"})
+    @Query("select r from Reservation r where r.guestName = :guestName and r.guestPhoneNumber = :guestPhoneNumber and r.status = :status order by r.createdAt desc")
+    List<Reservation> findByGuestNameAndGuestPhoneNumberAndStatus(
+            @Param("guestName") String guestName,
+            @Param("guestPhoneNumber") String guestPhoneNumber,
+            @Param("status") ReservationStatus status
+    );
+
+    @Query("select r from Reservation r where r.eventSchedule.id = :scheduleId " +
+            "and (r.guestName like %:keyword% or r.guestPhoneNumber like %:keyword%)")
+    Page<Reservation> findByEventScheduleIdAndKeyword(
+            @Param("scheduleId") Long scheduleId,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("select r from Reservation r where r.eventSchedule.id in :scheduleIds " +
+            "and (r.guestName like %:keyword% or r.guestPhoneNumber like %:keyword%)")
+    Page<Reservation> findByEventScheduleIdInAndKeyword(
+            @Param("scheduleIds") List<Long> scheduleIds,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

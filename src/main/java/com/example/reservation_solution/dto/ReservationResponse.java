@@ -19,6 +19,8 @@ public class ReservationResponse {
     private Integer ticketCount;
     private ReservationStatus status;
     private Boolean isCheckedIn;
+    private String eventTitle;
+    private String eventLocation;
     private ScheduleResponse schedule;
     private List<FormAnswerResponse> answers;
     private LocalDateTime createdAt;
@@ -32,6 +34,8 @@ public class ReservationResponse {
                 reservation.getTicketCount(),
                 reservation.getStatus(),
                 reservation.getIsCheckedIn(),
+                reservation.getEventSchedule().getEvent().getTitle(),
+                reservation.getEventSchedule().getEvent().getLocation(),
                 ScheduleResponse.from(reservation.getEventSchedule()),
                 reservation.getFormAnswers().stream()
                         .map(FormAnswerResponse::from)

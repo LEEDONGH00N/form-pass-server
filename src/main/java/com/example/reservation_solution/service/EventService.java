@@ -1,6 +1,7 @@
 package com.example.reservation_solution.service;
 
 import com.example.reservation_solution.domain.Event;
+import com.example.reservation_solution.domain.EventImage;
 import com.example.reservation_solution.domain.EventSchedule;
 import com.example.reservation_solution.domain.FormQuestion;
 import com.example.reservation_solution.domain.Host;
@@ -42,10 +43,20 @@ public class EventService {
                 .host(host)
                 .title(request.getTitle())
                 .location(request.getLocation())
-                .thumbnailUrl(request.getThumbnailUrl())
                 .description(request.getDescription())
                 .eventCode(eventCode)
                 .build();
+
+        // 이미지 추가 (리스트의 인덱스를 orderIndex로 사용)
+        if (request.getImages() != null) {
+            for (int i = 0; i < request.getImages().size(); i++) {
+                EventImage image = EventImage.builder()
+                        .imageUrl(request.getImages().get(i))
+                        .orderIndex(i)
+                        .build();
+                event.addImage(image);
+            }
+        }
 
         request.getSchedules().forEach(scheduleReq -> {
             EventSchedule schedule = EventSchedule.builder()
@@ -131,9 +142,20 @@ public class EventService {
         event.updateBasicInfo(
                 request.getTitle(),
                 request.getLocation(),
-                request.getThumbnailUrl(),
                 request.getDescription()
         );
+
+        // 기존 이미지 삭제 및 새 이미지 추가 (전체 갈아끼우기 방식)
+        event.clearImages();
+        if (request.getImages() != null) {
+            for (int i = 0; i < request.getImages().size(); i++) {
+                EventImage image = EventImage.builder()
+                        .imageUrl(request.getImages().get(i))
+                        .orderIndex(i)
+                        .build();
+                event.addImage(image);
+            }
+        }
 
         // 기존 스케줄 삭제 및 새 스케줄 추가
         event.clearSchedules();
