@@ -3,13 +3,13 @@ package com.example.reservation_solution.global.image;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -17,6 +17,7 @@ import java.util.UUID;
 public class S3Service {
 
     private final S3Presigner s3Presigner;
+    private static final List<String> ALLOWED_EXTENSIONS = List.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic");
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
@@ -28,9 +29,18 @@ public class S3Service {
         this.s3Presigner = s3Presigner;
     }
 
-
     public PresignedUrlResponse generatePresignedUrl(String originalFileName, String contentType) {
         String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        int dotIndex = originalFileName.lastIndexOf(".");
+        if (dotIndex >= 0) {
+            extension = originalFileName.substring(dotIndex).toLowerCase();
+        }
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new IllegalArgumentException("지원하지 않는 파일 형식입니다. 이미지 파일만 업로드 가능합니다.");
+        }
+        if (!contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("이미지 파일만 업로드할 수 있습니다.");
+        }
         String uniqueFileName = UUID.randomUUID().toString() + extension;
         log.info("Generating Presigned URL for Key: {}, ContentType: {}", uniqueFileName, contentType);
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
