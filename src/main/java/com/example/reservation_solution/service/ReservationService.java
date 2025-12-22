@@ -33,7 +33,7 @@ public class ReservationService {
 
         checkDuplicateReservation(request);
 
-        Integer ticketCount = request.getTicketCount() != null && request.getTicketCount() > 0
+        int ticketCount = request.getTicketCount() != null && request.getTicketCount() > 0
                 ? request.getTicketCount() : 1;
 
         validateCapacity(schedule, ticketCount);
