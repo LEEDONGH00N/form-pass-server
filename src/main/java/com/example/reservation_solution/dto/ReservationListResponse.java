@@ -29,7 +29,7 @@ public class ReservationListResponse {
                 reservation.getGuestPhoneNumber(),
                 reservation.getTicketCount(),
                 reservation.getStatus(),
-                reservation.getIsCheckedIn(),
+                reservation.isCheckedIn(),
                 reservation.getCreatedAt(),
                 scheduleName
         );

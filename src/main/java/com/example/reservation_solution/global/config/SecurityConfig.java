@@ -54,10 +54,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000",          // 로컬 개발용
-                "https://www.form-pass.life",     // 배포된 프론트엔드 (www)
+                "http://localhost:3000",
+                "https://www.form-pass.life",
                 "https://form-pass.life",
-                "https://form-pass-client.vercel.app"// 배포된 프론트엔드 (root)
+                "https://form-pass-client.vercel.app"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));

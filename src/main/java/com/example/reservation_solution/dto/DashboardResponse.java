@@ -1,14 +1,10 @@
 package com.example.reservation_solution.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor
-public class DashboardResponse {
-    private Integer totalSeats;
-    private Integer reservedCount;
-    private Double reservationRate;
-    private Integer checkedInCount;
-    private Integer availableSeats;
+public record DashboardResponse(
+    Integer totalSeats,
+    Integer reservedCount,
+    Double reservationRate,
+    Integer checkedInCount,
+    Integer availableSeats
+) {
 }

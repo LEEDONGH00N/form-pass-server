@@ -23,14 +23,14 @@ public class EmailAuthController {
     @PostMapping("/send")
     @Operation(summary = "인증 메일 전송", description = "입력한 이메일로 6자리 인증 코드를 전송합니다.")
     public ResponseEntity<String> sendEmail(@RequestBody EmailSendRequest request) {
-        verificationService.sendCode(request.getEmail());
+        verificationService.sendCode(request.email());
         return ResponseEntity.ok("인증 메일이 발송되었습니다.");
     }
 
     @PostMapping("/verify")
     @Operation(summary = "인증 코드 검증", description = "이메일과 인증 코드를 입력받아 유효성을 검사합니다.")
     public ResponseEntity<String> verifyEmail(@RequestBody EmailVerifyRequest request) {
-        boolean isVerified = verificationService.verifyCode(request.getEmail(), request.getAuthCode());
+        boolean isVerified = verificationService.verifyCode(request.email(), request.authCode());
         if (isVerified) {
             return ResponseEntity.ok("이메일 인증에 성공했습니다.");
         } else {

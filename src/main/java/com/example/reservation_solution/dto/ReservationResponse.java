@@ -33,7 +33,7 @@ public class ReservationResponse {
                 reservation.getGuestPhoneNumber(),
                 reservation.getTicketCount(),
                 reservation.getStatus(),
-                reservation.getIsCheckedIn(),
+                reservation.isCheckedIn(),
                 reservation.getEventSchedule().getEvent().getTitle(),
                 reservation.getEventSchedule().getEvent().getLocation(),
                 ScheduleResponse.from(reservation.getEventSchedule()),

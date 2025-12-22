@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -47,35 +47,26 @@ public class EventService {
                 .eventCode(eventCode)
                 .build();
 
-        // 이미지 추가 (리스트의 인덱스를 orderIndex로 사용)
         if (request.getImages() != null) {
-            for (int i = 0; i < request.getImages().size(); i++) {
-                EventImage image = EventImage.builder()
-                        .imageUrl(request.getImages().get(i))
-                        .orderIndex(i)
-                        .build();
-                event.addImage(image);
-            }
+            IntStream.range(0, request.getImages().size())
+                    .mapToObj(i -> EventImage.create(request.getImages().get(i), i))
+                    .forEach(event::addImage);
         }
 
-        request.getSchedules().forEach(scheduleReq -> {
-            EventSchedule schedule = EventSchedule.builder()
-                    .startTime(scheduleReq.getStartTime())
-                    .endTime(scheduleReq.getEndTime())
-                    .maxCapacity(scheduleReq.getMaxCapacity())
-                    .build();
-            event.addSchedule(schedule);
-        });
+        request.getSchedules().stream()
+                .map(scheduleReq -> EventSchedule.create(
+                        scheduleReq.getStartTime(),
+                        scheduleReq.getEndTime(),
+                        scheduleReq.getMaxCapacity()))
+                .forEach(event::addSchedule);
 
         if (request.getQuestions() != null) {
-            request.getQuestions().forEach(questionReq -> {
-                FormQuestion question = FormQuestion.builder()
-                        .questionText(questionReq.getQuestionText())
-                        .questionType(questionReq.getQuestionType())
-                        .isRequired(questionReq.getIsRequired())
-                        .build();
-                event.addQuestion(question);
-            });
+            request.getQuestions().stream()
+                    .map(questionReq -> FormQuestion.create(
+                            questionReq.getQuestionText(),
+                            questionReq.getQuestionType(),
+                            questionReq.getIsRequired()))
+                    .forEach(event::addQuestion);
         }
 
         Event savedEvent = eventRepository.save(event);
@@ -89,7 +80,7 @@ public class EventService {
         List<Event> events = eventRepository.findByHost(host);
         return events.stream()
                 .map(EventResponse::from)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public EventResponse getEventDetail(Long eventId, String email) {
@@ -102,27 +93,22 @@ public class EventService {
         return EventResponse.from(event);
     }
 
-    // Guest API methods
     public List<EventResponse> getAllEvents() {
         List<Event> events = eventRepository.findAll();
         return events.stream()
                 .map(EventResponse::from)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public EventResponse getEvent(String eventCode, String requestEmail) {
         Event event = eventRepository.findByEventCodeWithDetails(eventCode)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이벤트입니다"));
 
-        // 공개 여부 체크 (Security Check)
-        if (!event.getIsPublic()) {
-            // 비공개 이벤트의 경우
+        if (!event.isPublic()) {
             boolean isOwner = requestEmail != null && event.getHost().getEmail().equals(requestEmail);
             if (!isOwner) {
-                // Case B: 호스트 본인이 아니면 403 예외 발생
                 throw new AccessDeniedException("비공개된 이벤트입니다");
             }
-            // Case A: 호스트 본인이면 정상 반환 (미리보기 기능)
         }
 
         return EventResponse.from(event);
@@ -133,52 +119,39 @@ public class EventService {
         Event event = eventRepository.findByIdWithDetails(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이벤트입니다"));
 
-        // 권한 확인
         if (!event.getHost().getEmail().equals(email)) {
             throw new IllegalArgumentException("해당 이벤트에 대한 권한이 없습니다");
         }
 
-        // 기본 정보 업데이트 (Dirty Checking)
         event.updateBasicInfo(
                 request.getTitle(),
                 request.getLocation(),
                 request.getDescription()
         );
 
-        // 기존 이미지 삭제 및 새 이미지 추가 (전체 갈아끼우기 방식)
         event.clearImages();
         if (request.getImages() != null) {
-            for (int i = 0; i < request.getImages().size(); i++) {
-                EventImage image = EventImage.builder()
-                        .imageUrl(request.getImages().get(i))
-                        .orderIndex(i)
-                        .build();
-                event.addImage(image);
-            }
+            IntStream.range(0, request.getImages().size())
+                    .mapToObj(i -> EventImage.create(request.getImages().get(i), i))
+                    .forEach(event::addImage);
         }
 
-        // 기존 스케줄 삭제 및 새 스케줄 추가
         event.clearSchedules();
-        request.getSchedules().forEach(scheduleReq -> {
-            EventSchedule schedule = EventSchedule.builder()
-                    .startTime(scheduleReq.getStartTime())
-                    .endTime(scheduleReq.getEndTime())
-                    .maxCapacity(scheduleReq.getMaxCapacity())
-                    .build();
-            event.addSchedule(schedule);
-        });
+        request.getSchedules().stream()
+                .map(scheduleReq -> EventSchedule.create(
+                        scheduleReq.getStartTime(),
+                        scheduleReq.getEndTime(),
+                        scheduleReq.getMaxCapacity()))
+                .forEach(event::addSchedule);
 
-        // 기존 질문 삭제 및 새 질문 추가
         event.clearQuestions();
         if (request.getQuestions() != null) {
-            request.getQuestions().forEach(questionReq -> {
-                FormQuestion question = FormQuestion.builder()
-                        .questionText(questionReq.getQuestionText())
-                        .questionType(questionReq.getQuestionType())
-                        .isRequired(questionReq.getIsRequired())
-                        .build();
-                event.addQuestion(question);
-            });
+            request.getQuestions().stream()
+                    .map(questionReq -> FormQuestion.create(
+                            questionReq.getQuestionText(),
+                            questionReq.getQuestionType(),
+                            questionReq.getIsRequired()))
+                    .forEach(event::addQuestion);
         }
 
         return EventResponse.from(event);
@@ -189,12 +162,10 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이벤트입니다"));
 
-        // 권한 확인: 현재 로그인한 사용자가 해당 이벤트의 호스트인지 확인
         if (!event.getHost().getEmail().equals(email)) {
             throw new IllegalArgumentException("해당 이벤트에 대한 권한이 없습니다");
         }
 
-        // Dirty Checking을 이용한 상태 업데이트
         event.updateVisibility(isPublic);
     }
 }

@@ -101,7 +101,7 @@ public class EventController {
             @Valid @RequestBody EventVisibilityRequest request,
             @AuthenticationPrincipal HostUserDetails userDetails) {
         String email = userDetails.getUsername();
-        eventService.updateVisibility(eventId, email, request.getIsPublic());
+        eventService.updateVisibility(eventId, email, request.isPublic());
         return ResponseEntity.ok().build();
     }
 }

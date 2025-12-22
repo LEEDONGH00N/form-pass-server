@@ -26,7 +26,7 @@ public class AuthService {
     public void signup(SignupRequest request) {
         validateExistEmail(request);
         checkEmailVerified(request);
-        Host host = Host.create(request.getEmail(), passwordEncoder.encode(request.getPassword()), request.getName(), Role.HOST);
+        Host host = Host.create(request.email(), passwordEncoder.encode(request.password()), request.name(), Role.HOST);
         hostRepository.save(host);
     }
 
@@ -38,24 +38,24 @@ public class AuthService {
     }
 
     private void checkPassword(LoginRequest request, Host host) {
-        if (!passwordEncoder.matches(request.getPassword(), host.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), host.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
         }
     }
 
     private Host loadHostOrThrow(LoginRequest request) {
-        return hostRepository.findByEmail(request.getEmail())
+        return hostRepository.findByEmail(request.email())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다"));
     }
 
     private void validateExistEmail(SignupRequest request) {
-        if (hostRepository.existsByEmail(request.getEmail())) {
+        if (hostRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다");
         }
     }
 
     private void checkEmailVerified(SignupRequest request) {
-        if (!emailVerificationService.isEmailVerified(request.getEmail())) {
+        if (!emailVerificationService.isEmailVerified(request.email())) {
             throw new IllegalArgumentException("이메일 인증이 완료되지 않았습니다. 인증을 먼저 진행해주세요.");
         }
     }
