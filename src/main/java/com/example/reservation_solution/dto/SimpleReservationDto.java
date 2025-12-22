@@ -19,7 +19,7 @@ public class SimpleReservationDto {
                 reservation.getGuestName(),
                 reservation.getGuestPhoneNumber(),
                 reservation.getTicketCount(),
-                reservation.getIsCheckedIn()
+                reservation.isCheckedIn()
         );
     }
 }

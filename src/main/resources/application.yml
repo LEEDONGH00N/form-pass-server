@@ -2,7 +2,7 @@ spring:
   application:
     name: ticket-form
   profiles:
-    active: dev
+    active: local
 
 jwt:
   expiration: 3600000

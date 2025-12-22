@@ -42,6 +42,14 @@ public class EventSchedule extends BaseTimeEntity {
         this.reservedCount = 0;
     }
 
+    public static EventSchedule create(LocalDateTime startTime, LocalDateTime endTime, Integer maxCapacity) {
+        return EventSchedule.builder()
+                .startTime(startTime)
+                .endTime(endTime)
+                .maxCapacity(maxCapacity)
+                .build();
+    }
+
     public void assignEvent(Event event) {
         this.event = event;
     }

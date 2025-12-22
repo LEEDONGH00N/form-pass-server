@@ -32,6 +32,13 @@ public class EventImage {
         this.orderIndex = orderIndex;
     }
 
+    public static EventImage create(String imageUrl, Integer orderIndex) {
+        return EventImage.builder()
+                .imageUrl(imageUrl)
+                .orderIndex(orderIndex)
+                .build();
+    }
+
     public void assignEvent(Event event) {
         this.event = event;
     }

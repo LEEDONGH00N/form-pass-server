@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,32 @@ public class ReservationService {
     public ReservationResponse createReservation(ReservationRequest request) {
         EventSchedule schedule = eventScheduleRepository.findByIdWithLock(request.getScheduleId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
+
+        checkDuplicateReservation(request);
+
+        Integer ticketCount = request.getTicketCount() != null && request.getTicketCount() > 0
+                ? request.getTicketCount() : 1;
+
+        validateCapacity(schedule, ticketCount);
+
+        IntStream.range(0, ticketCount)
+                .forEach(i -> schedule.incrementReservedCount());
+
+        Reservation reservation = Reservation.create(
+                schedule,
+                request.getGuestName(),
+                request.getGuestPhoneNumber(),
+                ticketCount
+        );
+
+        processFormAnswers(request, reservation, schedule);
+        validateRequiredQuestions(reservation, schedule);
+
+        Reservation savedReservation = reservationRepository.save(reservation);
+        return ReservationResponse.from(savedReservation);
+    }
+
+    private void checkDuplicateReservation(ReservationRequest request) {
         if (request.getGuestPhoneNumber() != null && !request.getGuestPhoneNumber().trim().isEmpty()) {
             boolean alreadyReserved = reservationRepository.existsByEventScheduleIdAndGuestPhoneNumberAndStatus(
                     request.getScheduleId(),
@@ -40,9 +67,9 @@ public class ReservationService {
                 throw new IllegalStateException("이미 해당 스케줄에 예약하셨습니다.");
             }
         }
-        Integer ticketCount = request.getTicketCount() != null && request.getTicketCount() > 0
-                ? request.getTicketCount() : 1;
+    }
 
+    private void validateCapacity(EventSchedule schedule, Integer ticketCount) {
         if (schedule.getReservedCount() + ticketCount > schedule.getMaxCapacity()) {
             if (schedule.getReservedCount() >= schedule.getMaxCapacity()) {
                 throw new IllegalStateException("이미 매진된 스케줄입니다.");
@@ -50,44 +77,37 @@ public class ReservationService {
             throw new IllegalStateException("잔여 좌석이 부족합니다. (신청 인원: " + ticketCount +
                     ", 잔여 좌석: " + schedule.getAvailableSeats() + ")");
         }
-        for (int i = 0; i < ticketCount; i++) {
-            schedule.incrementReservedCount();
-        }
-        // eventScheduleRepository.save(schedule);
-        Reservation reservation = Reservation.create(
-                schedule,
-                request.getGuestName(),
-                request.getGuestPhoneNumber(),
-                ticketCount
-        );
+    }
+
+    private void processFormAnswers(ReservationRequest request, Reservation reservation, EventSchedule schedule) {
         if (request.getAnswers() != null && !request.getAnswers().isEmpty()) {
-            for (FormAnswerRequest answerRequest : request.getAnswers()) {
-                FormQuestion question = formQuestionRepository.findById(answerRequest.getQuestionId())
-                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 질문입니다."));
-                if (question.getIsRequired() &&
-                    (answerRequest.getAnswerText() == null || answerRequest.getAnswerText().trim().isEmpty())) {
-                    throw new IllegalArgumentException("필수 질문에 답변해야 합니다: " + question.getQuestionText());
-                }
+            request.getAnswers().stream()
+                    .map(answerRequest -> {
+                        FormQuestion question = formQuestionRepository.findById(answerRequest.questionId())
+                                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 질문입니다."));
 
-                FormAnswer formAnswer = FormAnswer.create(question, answerRequest.getAnswerText());
-                reservation.addFormAnswer(formAnswer);
-            }
-        }
-        List<FormQuestion> requiredQuestions = formQuestionRepository.findByEventIdOrderById(
-                schedule.getEvent().getId()
-        ).stream()
-                .filter(FormQuestion::getIsRequired)
-                .toList();
-        for (FormQuestion requiredQuestion : requiredQuestions) {
-            boolean hasAnswer = reservation.getFormAnswers().stream()
-                    .anyMatch(answer -> answer.getFormQuestion().getId().equals(requiredQuestion.getId()));
+                        if (question.isRequired() &&
+                            (answerRequest.answerText() == null || answerRequest.answerText().trim().isEmpty())) {
+                            throw new IllegalArgumentException("필수 질문에 답변해야 합니다: " + question.getQuestionText());
+                        }
 
-            if (!hasAnswer) {
-                throw new IllegalArgumentException("필수 질문에 답변해야 합니다: " + requiredQuestion.getQuestionText());
-            }
+                        return FormAnswer.create(question, answerRequest.answerText());
+                    })
+                    .forEach(reservation::addFormAnswer);
         }
-        Reservation savedReservation = reservationRepository.save(reservation);
-        return ReservationResponse.from(savedReservation);
+    }
+
+    private void validateRequiredQuestions(Reservation reservation, EventSchedule schedule) {
+        formQuestionRepository.findByEventIdOrderById(schedule.getEvent().getId()).stream()
+                .filter(FormQuestion::isRequired)
+                .forEach(requiredQuestion -> {
+                    boolean hasAnswer = reservation.getFormAnswers().stream()
+                            .anyMatch(answer -> answer.getFormQuestion().getId().equals(requiredQuestion.getId()));
+
+                    if (!hasAnswer) {
+                        throw new IllegalArgumentException("필수 질문에 답변해야 합니다: " + requiredQuestion.getQuestionText());
+                    }
+                });
     }
 
     public ReservationResponse getReservation(Long id) {
@@ -106,12 +126,15 @@ public class ReservationService {
     public void cancelReservation(Long id) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 예약입니다."));
+
         if (reservation.getStatus() == ReservationStatus.CANCELLED) {
             throw new IllegalStateException("이미 취소된 예약입니다.");
         }
-        if (reservation.getIsCheckedIn()) {
+
+        if (reservation.isCheckedIn()) {
             throw new IllegalStateException("이미 입장 완료된 티켓은 취소할 수 없습니다.");
         }
+
         reservation.cancel();
         EventSchedule schedule = reservation.getEventSchedule();
         schedule.decrementReservedCount(reservation.getTicketCount());
