@@ -35,7 +35,7 @@ public class Reservation extends BaseTimeEntity {
     private String qrToken;
 
     @Column(nullable = false)
-    private boolean isCheckedIn = false;
+    private Boolean isCheckedIn = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

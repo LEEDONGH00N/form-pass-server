@@ -32,7 +32,7 @@ public class Event extends BaseTimeEntity {
     private String eventCode;
 
     @Column(nullable = false)
-    private boolean isPublic = false;
+    private Boolean isPublic = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "host_id", nullable = false)
@@ -98,7 +98,7 @@ public class Event extends BaseTimeEntity {
         this.images.clear();
     }
 
-    public void updateVisibility(boolean isPublic) {
+    public void updateVisibility(Boolean isPublic) {
         this.isPublic = isPublic;
     }
 }

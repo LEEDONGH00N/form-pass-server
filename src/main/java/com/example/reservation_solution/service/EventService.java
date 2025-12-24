@@ -104,7 +104,7 @@ public class EventService {
         Event event = eventRepository.findByEventCodeWithDetails(eventCode)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이벤트입니다"));
 
-        if (!event.isPublic()) {
+        if (!event.getIsPublic()) {
             boolean isOwner = requestEmail != null && event.getHost().getEmail().equals(requestEmail);
             if (!isOwner) {
                 throw new AccessDeniedException("비공개된 이벤트입니다");

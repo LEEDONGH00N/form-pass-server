@@ -18,7 +18,7 @@ public class QuestionResponse {
                 question.getId(),
                 question.getQuestionText(),
                 question.getQuestionType(),
-                question.isRequired()
+                question.getIsRequired()
         );
     }
 }
