@@ -35,7 +35,7 @@ public class EventResponse {
                 imageUrls,
                 event.getDescription(),
                 event.getEventCode(),
-                event.isPublic(),
+                event.getIsPublic(),
                 event.getSchedules().stream()
                         .map(ScheduleResponse::from)
                         .collect(Collectors.toList()),

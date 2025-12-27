@@ -24,20 +24,20 @@ public class FormQuestion extends BaseTimeEntity {
     private QuestionType questionType;
 
     @Column(nullable = false)
-    private boolean isRequired;
+    private Boolean isRequired;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
     @Builder
-    public FormQuestion(String questionText, QuestionType questionType, boolean isRequired) {
+    public FormQuestion(String questionText, QuestionType questionType, Boolean isRequired) {
         this.questionText = questionText;
         this.questionType = questionType;
         this.isRequired = isRequired;
     }
 
-    public static FormQuestion create(String questionText, QuestionType questionType, boolean isRequired) {
+    public static FormQuestion create(String questionText, QuestionType questionType, Boolean isRequired) {
         return FormQuestion.builder()
                 .questionText(questionText)
                 .questionType(questionType)

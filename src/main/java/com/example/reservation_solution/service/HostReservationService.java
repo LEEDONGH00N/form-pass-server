@@ -37,7 +37,7 @@ public class HostReservationService {
         int checkedInCount = event.getSchedules().stream()
                 .flatMap(schedule -> reservationRepository.findByEventScheduleIdAndStatus(
                                 schedule.getId(), ReservationStatus.CONFIRMED).stream())
-                .filter(Reservation::isCheckedIn)
+                .filter(r -> r.getIsCheckedIn())
                 .mapToInt(Reservation::getTicketCount)
                 .sum();
 
@@ -124,7 +124,7 @@ public class HostReservationService {
     private CheckinResponse performCheckin(Reservation reservation, String hostEmail) {
         validateHostOwnership(reservation, hostEmail);
 
-        if (reservation.isCheckedIn()) {
+        if (reservation.getIsCheckedIn()) {
             throw new IllegalStateException("이미 입장 완료된 티켓입니다.");
         }
 

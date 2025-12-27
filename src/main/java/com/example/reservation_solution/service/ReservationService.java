@@ -86,7 +86,7 @@ public class ReservationService {
                         FormQuestion question = formQuestionRepository.findById(answerRequest.questionId())
                                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 질문입니다."));
 
-                        if (question.isRequired() &&
+                        if (question.getIsRequired() &&
                             (answerRequest.answerText() == null || answerRequest.answerText().trim().isEmpty())) {
                             throw new IllegalArgumentException("필수 질문에 답변해야 합니다: " + question.getQuestionText());
                         }
@@ -99,7 +99,7 @@ public class ReservationService {
 
     private void validateRequiredQuestions(Reservation reservation, EventSchedule schedule) {
         formQuestionRepository.findByEventIdOrderById(schedule.getEvent().getId()).stream()
-                .filter(FormQuestion::isRequired)
+                .filter(question -> question.getIsRequired())
                 .forEach(requiredQuestion -> {
                     boolean hasAnswer = reservation.getFormAnswers().stream()
                             .anyMatch(answer -> answer.getFormQuestion().getId().equals(requiredQuestion.getId()));
@@ -131,7 +131,7 @@ public class ReservationService {
             throw new IllegalStateException("이미 취소된 예약입니다.");
         }
 
-        if (reservation.isCheckedIn()) {
+        if (reservation.getIsCheckedIn()) {
             throw new IllegalStateException("이미 입장 완료된 티켓은 취소할 수 없습니다.");
         }
 

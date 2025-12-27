@@ -3,6 +3,7 @@ package com.example.reservation_solution.service;
 import com.example.reservation_solution.domain.Host;
 import com.example.reservation_solution.domain.Role;
 import com.example.reservation_solution.dto.LoginRequest;
+import com.example.reservation_solution.dto.LoginResponse;
 import com.example.reservation_solution.dto.SignupRequest;
 import com.example.reservation_solution.dto.TokenResponse;
 import com.example.reservation_solution.repository.HostRepository;
@@ -35,6 +36,19 @@ public class AuthService {
         checkPassword(request, host);
         String token = jwtProvider.generateToken(host.getEmail(), host.getRole().name());
         return new TokenResponse(token);
+    }
+
+    /**
+     * 로그인 처리 및 JWT 토큰 생성 (쿠키 설정용)
+     * 컨트롤러에서 쿠키 설정에 필요한 토큰을 반환
+     *
+     * @param request 로그인 요청 (이메일, 비밀번호)
+     * @return 생성된 JWT 토큰
+     */
+    public String generateLoginToken(LoginRequest request) {
+        Host host = loadHostOrThrow(request);
+        checkPassword(request, host);
+        return jwtProvider.generateToken(host.getEmail(), host.getRole().name());
     }
 
     private void checkPassword(LoginRequest request, Host host) {

@@ -2,7 +2,7 @@ spring:
   application:
     name: ticket-form
   profiles:
-    active: dev
+    active: local
 
 jwt:
-  expiration: 3600000
+  expiration: 1800000  # 30 minutes (30 * 60 * 1000 ms)

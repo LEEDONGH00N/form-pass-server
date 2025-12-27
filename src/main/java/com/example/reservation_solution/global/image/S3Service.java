@@ -17,7 +17,7 @@ import java.util.UUID;
 public class S3Service {
 
     private final S3Presigner s3Presigner;
-    private static final List<String> ALLOWED_EXTENSIONS = List.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic");
+    private static final List<String> ALLOWED_EXTENSIONS = List.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
