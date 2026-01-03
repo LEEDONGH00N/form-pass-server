@@ -22,11 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 예약 생성의 동시성 제어를 검증하는 테스트
- * - @Transactional을 사용하지 않아 실제 DB 커밋이 발생
- * - 비관적 락(Pessimistic Lock)이 제대로 동작하는지 검증
- */
+
 @SpringBootTest
 @ActiveProfiles("test")
 class ReservationConcurrencyTest {
@@ -56,7 +52,6 @@ class ReservationConcurrencyTest {
 
     @BeforeEach
     void setUp() {
-        // 기존 데이터 정리
         reservationRepository.deleteAll();
         formQuestionRepository.deleteAll();
         eventScheduleRepository.deleteAll();

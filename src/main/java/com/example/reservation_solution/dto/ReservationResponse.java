@@ -2,6 +2,7 @@ package com.example.reservation_solution.dto;
 
 import com.example.reservation_solution.domain.Reservation;
 import com.example.reservation_solution.domain.ReservationStatus;
+import com.example.reservation_solution.global.util.EncryptionUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -25,12 +26,15 @@ public class ReservationResponse {
     private List<FormAnswerResponse> answers;
     private LocalDateTime createdAt;
 
-    public static ReservationResponse from(Reservation reservation) {
+    public static ReservationResponse from(Reservation reservation, EncryptionUtils encryptionUtils) {
+        // 전화번호 복호화
+        String decryptedPhoneNumber = encryptionUtils.decrypt(reservation.getGuestPhoneNumber());
+
         return new ReservationResponse(
                 reservation.getId(),
                 reservation.getQrToken(),
                 reservation.getGuestName(),
-                reservation.getGuestPhoneNumber(),
+                decryptedPhoneNumber,  // 복호화된 전화번호 반환
                 reservation.getTicketCount(),
                 reservation.getStatus(),
                 reservation.getIsCheckedIn(),

@@ -1,5 +1,6 @@
 package com.example.reservation_solution.dto;
 
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,6 @@ public class ReservationRequest {
     private Long scheduleId;
     private String guestName;
     private String guestPhoneNumber;
-    private Integer ticketCount;
+    @Min(1) private Integer ticketCount;
     private List<FormAnswerRequest> answers;
 }

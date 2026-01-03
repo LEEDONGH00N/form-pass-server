@@ -55,10 +55,14 @@ public class EventSchedule extends BaseTimeEntity {
     }
 
     public void incrementReservedCount() {
-        if (this.reservedCount >= this.maxCapacity) {
-            throw new IllegalStateException("이미 정원이 가득 찼습니다.");
+        incrementReservedCount(1);
+    }
+
+    public void incrementReservedCount(int count) {
+        if (this.reservedCount + count > this.maxCapacity) {
+            throw new IllegalStateException("예약 가능 좌석을 초과했습니다. (요청: " + count + ", 잔여: " + getAvailableSeats() + ")");
         }
-        this.reservedCount++;
+        this.reservedCount += count;
     }
 
     public void decrementReservedCount(int count) {
