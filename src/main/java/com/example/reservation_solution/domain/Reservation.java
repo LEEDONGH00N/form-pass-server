@@ -14,6 +14,10 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "reservations")
+//@Table(name = "reservations", indexes = {
+//        @Index(name = "idx_reservation_schedule_phone_status",
+//                columnList = "event_schedule_id, guest_phone_number")
+//})
 public class Reservation extends BaseTimeEntity {
 
     @Id
@@ -61,10 +65,30 @@ public class Reservation extends BaseTimeEntity {
     }
 
     public void cancel() {
+        validateCancellable();
         this.status = ReservationStatus.CANCELLED;
     }
 
+    public void validateCancellable() {
+        if (this.status == ReservationStatus.CANCELLED) {
+            throw new IllegalStateException("이미 취소된 예약입니다.");
+        }
+        if (this.isCheckedIn) {
+            throw new IllegalStateException("이미 입장 완료된 티켓은 취소할 수 없습니다.");
+        }
+    }
+
+    public void validateCheckInPossible() {
+        if (this.status == ReservationStatus.CANCELLED) {
+            throw new IllegalStateException("취소된 예약은 체크인할 수 없습니다.");
+        }
+        if (this.isCheckedIn) {
+            throw new IllegalStateException("이미 체크인이 완료된 예약입니다.");
+        }
+    }
+
     public void checkIn() {
+        validateCheckInPossible();
         this.isCheckedIn = true;
     }
 

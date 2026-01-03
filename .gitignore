@@ -17,6 +17,13 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 *spec.md
+init/
+docker-compose-monitoring.yml
+lock-test.yaml
+prometheus.yml
+reservation-lookup-performance-test.yaml
+result.json
+result.json.html
 
 ### Spring Boot 환경설정 파일 무시 (보안 필수) ###
 

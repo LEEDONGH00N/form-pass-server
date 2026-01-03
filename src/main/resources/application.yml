@@ -5,4 +5,4 @@ spring:
     active: local
 
 jwt:
-  expiration: 1800000  # 30 minutes (30 * 60 * 1000 ms)
+  expiration: 1800000  # 30분
