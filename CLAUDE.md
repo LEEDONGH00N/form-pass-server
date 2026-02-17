@@ -25,17 +25,6 @@ Form PASS is an event reservation system built with Spring Boot 3.4.12 and Java 
 ./gradlew bootJar
 ```
 
-## Monitoring Stack
-
-```bash
-# Start Prometheus and Grafana
-docker-compose up -d
-
-# Prometheus: http://localhost:9090
-# Grafana: http://localhost:3000 (admin/admin)
-# Swagger UI: http://localhost:8080/swagger-ui.html
-```
-
 ## Architecture
 
 **Layered Structure:**
@@ -57,7 +46,7 @@ global/         → Cross-cutting concerns (config, security, exception, mail, i
 
 ## Security
 
-- JWT authentication with 30-minute expiration
+- JWT Bearer Token 인증 (Authorization 헤더), 30분 만료
 - Public endpoints: `/api/auth/**`, `/api/events/**`, `/api/reservations/**`
 - Protected endpoints: `/api/host/**` (requires HOST role)
 - Guest phone numbers are encrypted in database using `EncryptionUtils`
@@ -65,8 +54,8 @@ global/         → Cross-cutting concerns (config, security, exception, mail, i
 ## Testing
 
 - Test profile uses H2 in-memory database (see `application-test.yml`)
-- `ReservationConcurrencyTest` tests race conditions with pessimistic locking
 - Tests run with: `./gradlew clean test`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
 
 ## Key Technical Details
 
