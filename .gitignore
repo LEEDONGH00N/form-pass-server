@@ -20,13 +20,12 @@ bin/
 init/
 docker-compose-monitoring.yml
 lock-test.yaml
-prometheus.yml
 reservation-lookup-performance-test.yaml
 result.json
 result.json.html
 
 ### Spring Boot 환경설정 파일 무시 (보안 필수) ###
-
+.env
 
 # 혹시 최상위에 뒀을 경우를 대비해 추가
 application-dev.yml
