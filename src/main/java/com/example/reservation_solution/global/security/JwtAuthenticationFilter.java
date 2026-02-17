@@ -2,7 +2,6 @@ package com.example.reservation_solution.global.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -32,32 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-
     private String resolveToken(HttpServletRequest request) {
-        String tokenFromCookie = resolveTokenFromCookie(request);
-        if (tokenFromCookie != null) {
-            return tokenFromCookie;
-        }
-        return resolveTokenFromHeader(request);
-    }
-
-    private String resolveTokenFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return null;
-        }
-        for (Cookie cookie : cookies) {
-            if (CookieUtils.ACCESS_TOKEN_COOKIE_NAME.equals(cookie.getName())) {
-                String token = cookie.getValue();
-                if (StringUtils.hasText(token)) {
-                    return token;
-                }
-            }
-        }
-        return null;
-    }
-
-    private String resolveTokenFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);

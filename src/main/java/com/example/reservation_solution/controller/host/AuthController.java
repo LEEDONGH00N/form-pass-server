@@ -4,16 +4,12 @@ import com.example.reservation_solution.dto.LoginRequest;
 import com.example.reservation_solution.dto.LoginResponse;
 import com.example.reservation_solution.dto.SignupRequest;
 import com.example.reservation_solution.global.docs.LoginDocs;
-import com.example.reservation_solution.global.docs.LogoutDocs;
 import com.example.reservation_solution.global.docs.SignupDocs;
-import com.example.reservation_solution.global.security.CookieUtils;
 import com.example.reservation_solution.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,19 +35,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         String token = authService.generateLoginToken(request);
-        ResponseCookie cookie = CookieUtils.createAccessTokenCookie(token);
-        LoginResponse response = LoginResponse.success(request.email());
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(response);
-    }
-
-    @LogoutDocs
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        ResponseCookie cookie = CookieUtils.deleteAccessTokenCookie();
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .build();
+        return ResponseEntity.ok(LoginResponse.of(token, request.email()));
     }
 }
