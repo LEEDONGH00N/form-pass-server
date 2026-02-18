@@ -15,26 +15,18 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
-        ErrorResponse response = ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-        log.error("Unhandled exception occurred", e);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e) {
-        ErrorResponse response = ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-        log.error("IllegalStateException occurred: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
+        log.warn("Business exception: {} - {}", e.getClass().getSimpleName(), e.getMessage());
+        ErrorResponse response = ErrorResponse.of(e.getHttpStatus().value(), e.getMessage());
+        return ResponseEntity.status(e.getHttpStatus()).body(response);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
-        // 예외 메시지를 그대로 사용하여 명확한 에러 정보 제공
         String message = e.getMessage() != null ? e.getMessage() : "접근 권한이 없습니다";
+        log.warn("Access denied: {}", message);
         ErrorResponse response = ErrorResponse.of(HttpStatus.FORBIDDEN.value(), message);
-        log.error("AccessDeniedException occurred: {}", message);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
@@ -43,22 +35,29 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
+        log.warn("Validation failed: {}", message);
         ErrorResponse response = ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), message);
-        log.error("MethodArgumentNotValidException occurred", e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(EmailSendException.class)
-    public ResponseEntity<ErrorResponse> handleEmailException(EmailSendException e) {
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("Illegal argument: {}", e.getMessage());
         ErrorResponse response = ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-        log.error("메일 발송 실패: ", e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e) {
+        log.warn("Illegal state: {}", e.getMessage());
+        ErrorResponse response = ErrorResponse.of(HttpStatus.CONFLICT.value(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception e) {
+        log.error("Unexpected error occurred: ", e);
         ErrorResponse response = ErrorResponse.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버 내부 오류가 발생했습니다");
-        log.error("비상! : ", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }
