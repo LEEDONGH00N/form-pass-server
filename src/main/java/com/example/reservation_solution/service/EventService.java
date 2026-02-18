@@ -10,6 +10,7 @@ import com.example.reservation_solution.dto.EventResponse;
 import com.example.reservation_solution.dto.EventUpdateRequest;
 import com.example.reservation_solution.global.util.CodeGenerator;
 import com.example.reservation_solution.repository.EventRepository;
+import com.example.reservation_solution.repository.FormAnswerRepository;
 import com.example.reservation_solution.repository.HostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final HostRepository hostRepository;
+    private final FormAnswerRepository formAnswerRepository;
 
     @Transactional
     public EventResponse createEvent(String email, CreateEventRequest request) {
@@ -143,6 +145,10 @@ public class EventService {
                         scheduleReq.getEndTime(),
                         scheduleReq.getMaxCapacity()))
                 .forEach(event::addSchedule);
+
+        if (formAnswerRepository.existsByEventId(eventId)) {
+            throw new IllegalStateException("예약된 답변이 존재하여 질문을 수정할 수 없습니다.");
+        }
 
         event.clearQuestions();
         if (request.getQuestions() != null) {

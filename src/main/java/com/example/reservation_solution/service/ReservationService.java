@@ -74,7 +74,6 @@ public class ReservationService {
         formQuestionRepository.findByEventIdOrderById(schedule.getEvent().getId())
                 .stream()
                 .filter(FormQuestion::getIsRequired)
-                .filter(q -> q.getQuestionType() != QuestionType.NAME && q.getQuestionType() != QuestionType.PHONE)
                 .forEach(requiredQuestion -> {
                     boolean hasAnswer = reservation.getFormAnswers().stream()
                             .anyMatch(answer -> answer.getFormQuestion().getId().equals(requiredQuestion.getId()));
