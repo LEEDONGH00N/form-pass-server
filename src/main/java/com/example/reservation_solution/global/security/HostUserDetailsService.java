@@ -1,7 +1,7 @@
 package com.example.reservation_solution.global.security;
 
-import com.example.reservation_solution.domain.Host;
-import com.example.reservation_solution.repository.HostRepository;
+import com.example.reservation_solution.api.auth.domain.Host;
+import com.example.reservation_solution.api.auth.repository.HostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

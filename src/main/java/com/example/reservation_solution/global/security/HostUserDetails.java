@@ -1,6 +1,6 @@
 package com.example.reservation_solution.global.security;
 
-import com.example.reservation_solution.domain.Host;
+import com.example.reservation_solution.api.auth.domain.Host;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
