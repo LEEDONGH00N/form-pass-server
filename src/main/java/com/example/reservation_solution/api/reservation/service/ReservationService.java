@@ -76,6 +76,7 @@ public class ReservationService {
         formQuestionRepository.findByEventIdOrderById(schedule.getEvent().getId())
                 .stream()
                 .filter(FormQuestion::getIsRequired)
+                .filter(question -> !isBuiltInQuestion(question.getQuestionText()))
                 .forEach(requiredQuestion -> {
                     boolean hasAnswer = reservation.getFormAnswers().stream()
                             .anyMatch(answer -> answer.getFormQuestion().getId().equals(requiredQuestion.getId()));
@@ -83,6 +84,13 @@ public class ReservationService {
                         throw new IllegalArgumentException("필수 질문에 답변해야 합니다: " + requiredQuestion.getQuestionText());
                     }
                 });
+    }
+
+    private boolean isBuiltInQuestion(String questionText) {
+        String normalized = questionText.toLowerCase().replaceAll("\\s+", "");
+        return normalized.contains("이름") || normalized.contains("name") ||
+               normalized.contains("전화") || normalized.contains("연락처") ||
+               normalized.contains("핸드폰") || normalized.contains("phone");
     }
 
     public ReservationResponse getReservation(Long id) {
