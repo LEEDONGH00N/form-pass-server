@@ -1,5 +1,7 @@
 # Form-PASS Server
 
+<img width="1228" height="576" alt="스크린샷 2026-03-05 오후 6 34 35" src="https://github.com/user-attachments/assets/d58f4bbb-e301-4c05-99b5-5465f444a3ea" />
+
 호스트를 위한 간편 예약 관리 솔루션의 백엔드 서버입니다.
 
 > 이벤트 생성 → 예약 폼 공유 → 선착순 예약 → QR 체크인까지 하나의 플로우로 처리합니다.
