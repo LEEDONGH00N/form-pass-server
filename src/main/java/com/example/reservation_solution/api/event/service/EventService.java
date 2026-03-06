@@ -86,7 +86,7 @@ public class EventService {
     }
 
     public EventResponse getEventDetail(Long eventId, String email) {
-        Event event = eventRepository.findByIdWithDetails(eventId)
+        Event event = eventRepository.findByIdWithSchedules(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이벤트입니다"));
 
         if (!event.getHost().getEmail().equals(email)) {
@@ -103,7 +103,7 @@ public class EventService {
     }
 
     public EventResponse getEvent(String eventCode, String requestEmail) {
-        Event event = eventRepository.findByEventCodeWithDetails(eventCode)
+        Event event = eventRepository.findByEventCodeWithSchedules(eventCode)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이벤트입니다"));
 
         if (!event.getIsPublic()) {
@@ -118,7 +118,7 @@ public class EventService {
 
     @Transactional
     public EventResponse updateEvent(Long eventId, String email, EventUpdateRequest request) {
-        Event event = eventRepository.findByIdWithDetails(eventId)
+        Event event = eventRepository.findByIdWithSchedules(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이벤트입니다"));
 
         if (!event.getHost().getEmail().equals(email)) {

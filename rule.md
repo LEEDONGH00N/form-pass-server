@@ -45,6 +45,7 @@
     - Method/Variable: `camelCase`
     - Constant/Enum: `UPPER_SNAKE_CASE`
     - 인터페이스 구현체는 `Impl` 접미사를 지양하고, 의도가 드러나는 명명(예: `FileUploader` -> `S3FileUploader`)을 사용하십시오.
+    - **예외:** Spring Data JPA Custom Repository 구현체는 `XxxRepositoryImpl` 명명 필수 (프레임워크 제약)
 
 ---
 
@@ -60,6 +61,7 @@
 ## 4. 🗄️ Database, JPA & ORM Optimization (데이터베이스 및 쿼리)
 - **Lazy Loading Only:** JPA Entity의 모든 `@ManyToOne`, `@OneToOne` 연관관계는 반드시 `(fetch = FetchType.LAZY)`로 명시해야 합니다. (기본값이 EAGER이므로 생략 불가)
 - **N+1 Problem Prevention:** 컬렉션(`@OneToMany`) 조회 시 N+1 문제가 발생하지 않도록, 상황에 맞게 `Fetch Join`, `EntityGraph`, 또는 하이버네이트 `@BatchSize`를 적용하십시오. 루프(Loop) 문 안에서 쿼리가 발생하는 코드는 작성하지 마십시오.
+- **QueryDSL Repository 패턴:** 복잡 쿼리(동적 검색, 복수 fetchJoin, BooleanBuilder)는 `XxxRepositoryCustom` 인터페이스 + `XxxRepositoryImpl` 구현체로 분리하십시오. 단순 derived query, exists, `@Lock`은 JPA 인터페이스에 유지하십시오.
 - **Auditing:** Entity 생성 및 수정 시간, 생성자/수정자 정보는 비즈니스 로직에서 수동으로 주입하지 말고, JPA Auditing(`@CreatedDate`, `@LastModifiedDate` 등)을 사용하여 자동화하십시오.
 - **Pagination:** 대량의 데이터를 조회할 때는 메모리에 모두 올리는 `findAll()`을 금지합니다. 반드시 `Pageable`을 활용하여 페이징 처리하거나 커서 기반(Cursor-based) 페이지네이션을 구현하십시오.
 

@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface FormAnswerRepository extends JpaRepository<FormAnswer, Long> {
+public interface FormAnswerRepository extends JpaRepository<FormAnswer, Long>, FormAnswerRepositoryCustom {
 
     @Query("SELECT COUNT(fa) > 0 FROM FormAnswer fa WHERE fa.formQuestion.event.id = :eventId")
     boolean existsByEventId(@Param("eventId") Long eventId);

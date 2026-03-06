@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface FormQuestionRepository extends JpaRepository<FormQuestion, Long> {
+public interface FormQuestionRepository extends JpaRepository<FormQuestion, Long>, FormQuestionRepositoryCustom {
 
     List<FormQuestion> findByEventIdOrderById(Long eventId);
 }
