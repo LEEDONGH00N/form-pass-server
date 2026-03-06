@@ -195,4 +195,4 @@ k6 run k6/reservation-constant-test.js
 | Spike (100 VU 피크) | 0→100 | 11,200건 | 706ms | 1,000ms | 0% | 0건 |
 | Constant (50 VU) | 50 | 8,152건 | 236ms | 567ms | 0% | 0건 |
 
-상세 결과: [`docs/load-test-report.md`](docs/load-test-report.md), [`docs/constant-test-report.md`](docs/constant-test-report.md)
+상세 결과: [`docs/reports/load-test-report.md`](docs/reports/load-test-report.md), [`docs/reports/constant-test-report.md`](docs/reports/constant-test-report.md)
