@@ -91,3 +91,28 @@ Each domain package follows: `controller/ → service/ → repository/ → domai
 
 - **JWT**: jjwt 0.11.5 | **AWS SDK**: v2.27.21 (S3) | **API Docs**: Springdoc OpenAPI 2.7.0
 - **Monitoring**: Spring Actuator + Micrometer Prometheus | **Cache**: Caffeine
+
+## 필수 참조 문서
+
+코드 작성 전 반드시 아래 문서를 읽고 규칙을 따르십시오.
+
+| 문서 | 역할 | 필수 시점 |
+|------|------|----------|
+| `rule.md` | AI 그라운드 룰 (개발 프로세스, 아키텍처, 코드 스타일, 테스트 규칙) | **모든 작업 전** |
+| `spec.md` | 기능 명세 인덱스 → `docs/spec/` 하위 문서 | 기능 구현·수정 시 |
+
+### 프로젝트 문서 구조
+
+```
+rule.md              ← AI 코딩 규칙 (개발 프로세스 0번 ~ Git 규칙 13번)
+spec.md              ← 기능 명세 인덱스
+docs/
+  spec/              ← 기능 명세 (*-spec.md)
+    api-spec.md
+    erd-spec.md
+    business-rules-spec.md
+    domain-spec.md
+  reports/           ← 부하 테스트 결과 리포트
+k6/                  ← k6 부하 테스트 스크립트
+perf.sh              ← 부하 테스트 실행 래퍼
+```

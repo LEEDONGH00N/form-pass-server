@@ -16,7 +16,6 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-*spec.md
 init/
 docker-compose-monitoring.yml
 lock-test.yaml
