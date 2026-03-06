@@ -113,7 +113,7 @@ public class ReservationService {
 
     public List<ReservationLookupResponse> lookupReservations(String guestName, String guestPhoneNumber) {
         String encryptedPhoneNumber = encryptionUtils.encrypt(guestPhoneNumber);
-        List<Reservation> reservations = reservationRepository.findByGuestNameAndGuestPhoneNumberAndStatus(
+        List<Reservation> reservations = reservationRepository.findByGuestInfoAndStatus(
                 guestName,
                 encryptedPhoneNumber,
                 ReservationStatus.CONFIRMED

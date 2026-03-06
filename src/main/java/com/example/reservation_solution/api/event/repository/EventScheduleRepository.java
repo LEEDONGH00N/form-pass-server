@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface EventScheduleRepository extends JpaRepository<EventSchedule, Long> {
+public interface EventScheduleRepository extends JpaRepository<EventSchedule, Long>, EventScheduleRepositoryCustom {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from EventSchedule s where s.id = :id")

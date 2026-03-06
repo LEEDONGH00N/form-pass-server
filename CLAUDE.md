@@ -28,7 +28,7 @@ api/
 global/
   security/      → JwtProvider, JwtAuthenticationFilter, HostUserDetailsService
   exception/     → BusinessException hierarchy + GlobalExceptionHandler
-  config/        → SecurityConfig, SwaggerConfig, AwsConfig
+  config/        → SecurityConfig, SwaggerConfig, AwsConfig, QuerydslConfig
   mail/          → Async email sending (Google SMTP)
   image/         → S3 presigned URL generation
   common/domain/ → BaseTimeEntity (createdAt/updatedAt auditing)
@@ -37,6 +37,16 @@ global/
 ```
 
 Each domain package follows: `controller/ → service/ → repository/ → domain/ → dto/`
+
+**Repository Pattern (QueryDSL):**
+```
+XxxRepository extends JpaRepository<Xxx, Long>, XxxRepositoryCustom   ← 단순 쿼리 유지
+XxxRepositoryCustom                                                    ← 복잡 쿼리 인터페이스
+XxxRepositoryImpl implements XxxRepositoryCustom                       ← QueryDSL 구현체 (JPAQueryFactory)
+```
+- 단순 derived query, exists, @Lock은 JPA 인터페이스에 유지
+- 동적 검색, 복수 fetchJoin, BooleanBuilder가 필요한 쿼리는 Custom으로 분리
+- `Impl` 접미사는 Spring Data JPA의 Custom 구현체 인식을 위한 프레임워크 제약
 
 **Key Domain Relationships:**
 - `Host` → owns many `Event` (via eventId)
@@ -91,6 +101,7 @@ Each domain package follows: `controller/ → service/ → repository/ → domai
 
 - **JWT**: jjwt 0.11.5 | **AWS SDK**: v2.27.21 (S3) | **API Docs**: Springdoc OpenAPI 2.7.0
 - **Monitoring**: Spring Actuator + Micrometer Prometheus | **Cache**: Caffeine
+- **QueryDSL**: 5.1.0 (jakarta classifier) | Q클래스: `build/generated/` 하위 자동 생성
 
 ## 필수 참조 문서
 

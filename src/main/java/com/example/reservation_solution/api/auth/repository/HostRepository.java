@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-public interface HostRepository extends JpaRepository<Host, Long> {
+public interface HostRepository extends JpaRepository<Host, Long>, HostRepositoryCustom {
     Optional<Host> findByEmail(String email);
     boolean existsByEmail(String email);
 }

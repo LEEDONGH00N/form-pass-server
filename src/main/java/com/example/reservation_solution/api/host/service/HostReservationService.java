@@ -58,23 +58,16 @@ public class HostReservationService {
     public Page<ReservationListResponse> getReservationList(Long eventId, Long scheduleId, String searchKeyword, String hostEmail, Pageable pageable) {
         Event event = validateHostOwnership(eventId, hostEmail);
 
-        Page<Reservation> reservations;
-        boolean hasKeyword = searchKeyword != null && !searchKeyword.trim().isEmpty();
-
         if (scheduleId != null) {
             validateScheduleBelongsToEvent(scheduleId, eventId);
-            reservations = hasKeyword
-                    ? reservationRepository.findByEventScheduleIdAndKeyword(scheduleId, searchKeyword.trim(), pageable)
-                    : reservationRepository.findByEventScheduleId(scheduleId, pageable);
-        } else {
-            List<Long> scheduleIds = event.getSchedules().stream()
-                    .map(EventSchedule::getId)
-                    .toList();
-
-            reservations = hasKeyword
-                    ? reservationRepository.findByEventScheduleIdInAndKeyword(scheduleIds, searchKeyword.trim(), pageable)
-                    : reservationRepository.findByEventScheduleIdIn(scheduleIds, pageable);
         }
+
+        List<Long> scheduleIds = (scheduleId == null)
+                ? event.getSchedules().stream().map(EventSchedule::getId).toList()
+                : null;
+
+        Page<Reservation> reservations = reservationRepository.searchReservations(
+                scheduleId, scheduleIds, searchKeyword, pageable);
 
         return reservations.map(ReservationListResponse::from);
     }
@@ -171,7 +164,7 @@ public class HostReservationService {
     }
 
     private Event loadEventOrThrow(Long eventId) {
-        return eventRepository.findByIdWithDetails(eventId)
+        return eventRepository.findByIdWithSchedules(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이벤트입니다."));
     }
 
