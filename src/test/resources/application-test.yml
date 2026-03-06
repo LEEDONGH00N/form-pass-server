@@ -34,6 +34,11 @@ jwt:
   secret: "testsecretkeyforunittestingonly1234567890"
   expiration: 3600000
 
+verification:
+  code-expiration-minutes: 5
+  signup-window-minutes: 1
+  cache-max-size: 100
+
 logging:
   level:
     root: INFO
