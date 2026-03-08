@@ -28,7 +28,7 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse createReservation(ReservationRequest request) {
-        EventSchedule schedule = loadEventScheduleWithLockOrThrow(request.getScheduleId());
+        EventSchedule schedule = loadEventScheduleOrThrow(request.getScheduleId());
         String encryptedPhoneNumber = encryptionUtils.encrypt(request.getGuestPhoneNumber());
         checkDuplicateReservation(request.getScheduleId(), encryptedPhoneNumber);
         schedule.incrementReservedCount(request.getTicketCount());
@@ -123,8 +123,13 @@ public class ReservationService {
                 .toList();
     }
 
-    private EventSchedule loadEventScheduleWithLockOrThrow(Long scheduleId) {
-        return eventScheduleRepository.findByIdWithLock(scheduleId)
+    public Long getScheduleIdByReservationId(Long reservationId) {
+        Reservation reservation = loadReservationOrThrow(reservationId);
+        return reservation.getEventSchedule().getId();
+    }
+
+    private EventSchedule loadEventScheduleOrThrow(Long scheduleId) {
+        return eventScheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
     }
 

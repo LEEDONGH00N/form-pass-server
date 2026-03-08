@@ -28,7 +28,8 @@ api/
 global/
   security/      → JwtProvider, JwtAuthenticationFilter, HostUserDetailsService
   exception/     → BusinessException hierarchy + GlobalExceptionHandler
-  config/        → SecurityConfig, SwaggerConfig, AwsConfig, QuerydslConfig
+  config/        → SecurityConfig, SwaggerConfig, AwsConfig, QuerydslConfig, RedissonConfig
+  lock/          → DistributedLockService (Redisson 분산 락)
   mail/          → Async email sending (Google SMTP)
   image/         → S3 presigned URL generation
   common/domain/ → BaseTimeEntity (createdAt/updatedAt auditing)
@@ -51,7 +52,7 @@ XxxRepositoryImpl implements XxxRepositoryCustom                       ← Query
 **Key Domain Relationships:**
 - `Host` → owns many `Event` (via eventId)
 - `Event` → has `EventSchedule[]`, `FormQuestion[]`, `EventImage[]`
-- `EventSchedule` → has `Reservation[]` (capacity-controlled with pessimistic locking)
+- `EventSchedule` → has `Reservation[]` (capacity-controlled with Redisson distributed lock)
 - `Reservation` → has `FormAnswer[]`, a `qrToken` (UUID) for check-in, and `ReservationStatus` (CONFIRMED/CANCELLED)
 
 ## Conventions
@@ -67,7 +68,10 @@ XxxRepositoryImpl implements XxxRepositoryCustom                       ← Query
 
 ## Concurrency Control
 
-- `EventSchedule.reservedCount` is protected by `@Lock(LockModeType.PESSIMISTIC_WRITE)` in `EventScheduleRepository` to prevent overbooking race conditions
+- `EventSchedule.reservedCount` is protected by **Redisson distributed lock** (Redis) via Facade pattern (ADR-003)
+- Facade classes (`ReservationFacade`, `HostReservationFacade`) acquire `schedule:{scheduleId}` lock **outside** `@Transactional` to minimize DB connection hold time
+- `DistributedLockService.executeWithLock()` uses `tryLock(5, SECONDS)` with Watchdog auto-renewal (no leaseTime)
+- Lock targets: `createReservation`, `cancelReservation` (both guest and host)
 - Duplicate reservation check: same phone number + same schedule combination is rejected
 
 ## Security
@@ -81,7 +85,7 @@ XxxRepositoryImpl implements XxxRepositoryCustom                       ← Query
 
 ## Testing
 
-- Test profile (`application-test.yml`): H2 in-memory DB with `MODE=MySQL`, mock mail config, dedicated JWT secret
+- Test profile (`application-test.yml`): H2 in-memory DB with `MODE=MySQL`, embedded Redis (port 6370), mock mail config, dedicated JWT secret
 - Tests run with: `./gradlew clean test`
 - Currently only a context-load test exists (`ReservationSolutionApplicationTests`)
 
@@ -101,6 +105,7 @@ XxxRepositoryImpl implements XxxRepositoryCustom                       ← Query
 
 - **JWT**: jjwt 0.11.5 | **AWS SDK**: v2.27.21 (S3) | **API Docs**: Springdoc OpenAPI 2.7.0
 - **Monitoring**: Spring Actuator + Micrometer Prometheus | **Cache**: Caffeine
+- **Redis**: Redisson 3.27.2 (분산 락) | **Test**: embedded-redis 1.4.3
 - **QueryDSL**: 5.1.0 (jakarta classifier) | Q클래스: `build/generated/` 하위 자동 생성
 
 ## 필수 참조 문서
@@ -123,6 +128,7 @@ docs/
     erd-spec.md
     business-rules-spec.md
     domain-spec.md
+  adr/               ← Architecture Decision Records
   reports/           ← 부하 테스트 결과 리포트
 k6/                  ← k6 부하 테스트 스크립트
 perf.sh              ← 부하 테스트 실행 래퍼

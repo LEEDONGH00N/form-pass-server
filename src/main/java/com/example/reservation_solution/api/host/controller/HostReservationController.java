@@ -6,6 +6,7 @@ import com.example.reservation_solution.api.host.dto.*;
 import com.example.reservation_solution.api.auth.dto.*;
 import com.example.reservation_solution.global.docs.*;
 import com.example.reservation_solution.global.security.HostUserDetails;
+import com.example.reservation_solution.api.host.service.HostReservationFacade;
 import com.example.reservation_solution.api.host.service.HostReservationService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,6 +30,7 @@ import java.util.List;
 public class HostReservationController {
 
     private final HostReservationService hostReservationService;
+    private final HostReservationFacade hostReservationFacade;
 
     @GetDashboardDocs
     @GetMapping("/events/{eventId}/dashboard")
@@ -69,7 +71,7 @@ public class HostReservationController {
             @PathVariable Long reservationId,
             @AuthenticationPrincipal HostUserDetails userDetails) {
         String email = userDetails.getUsername();
-        hostReservationService.cancelReservation(reservationId, email);
+        hostReservationFacade.cancelReservation(reservationId, email);
         return ResponseEntity.noContent().build();
     }
 
