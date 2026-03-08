@@ -87,6 +87,11 @@ public class HostReservationService {
         return ReservationResponse.from(reservation, encryptionUtils);
     }
 
+    public Long getScheduleIdByReservationId(Long reservationId) {
+        Reservation reservation = loadReservationOrThrow(reservationId);
+        return reservation.getEventSchedule().getId();
+    }
+
     @Transactional
     public void cancelReservation(Long reservationId, String hostEmail) {
         Reservation reservation = loadReservationOrThrow(reservationId);

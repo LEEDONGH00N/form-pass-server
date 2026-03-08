@@ -5,6 +5,7 @@ import com.example.reservation_solution.api.reservation.dto.ReservationLookupRes
 import com.example.reservation_solution.api.reservation.dto.ReservationRequest;
 import com.example.reservation_solution.api.reservation.dto.ReservationResponse;
 import com.example.reservation_solution.global.docs.*;
+import com.example.reservation_solution.api.reservation.service.ReservationFacade;
 import com.example.reservation_solution.api.reservation.service.ReservationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,11 +23,12 @@ import java.util.List;
 public class ReservationController {
 
     private final ReservationService reservationService;
+    private final ReservationFacade reservationFacade;
 
     @CreateReservationDocs
     @PostMapping
     public ResponseEntity<ReservationResponse> createReservation(@Valid @RequestBody ReservationRequest request) {
-        ReservationResponse response = reservationService.createReservation(request);
+        ReservationResponse response = reservationFacade.createReservation(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -47,7 +49,7 @@ public class ReservationController {
     @CancelReservationDocs
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelReservation(@PathVariable Long id) {
-        reservationService.cancelReservation(id);
+        reservationFacade.cancelReservation(id);
         return ResponseEntity.noContent().build();
     }
 
