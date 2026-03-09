@@ -27,6 +27,25 @@ public class ReservationService {
     private final EncryptionUtils encryptionUtils;
 
     @Transactional
+    public ReservationResponse createReservationWithPessimisticLock(ReservationRequest request) {
+        EventSchedule schedule = eventScheduleRepository.findByIdWithLock(request.getScheduleId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
+        String encryptedPhoneNumber = encryptionUtils.encrypt(request.getGuestPhoneNumber());
+        checkDuplicateReservation(request.getScheduleId(), encryptedPhoneNumber);
+        schedule.incrementReservedCount(request.getTicketCount());
+        Reservation reservation = Reservation.create(
+                schedule,
+                request.getGuestName(),
+                encryptedPhoneNumber,
+                request.getTicketCount()
+        );
+        processFormAnswers(request, reservation);
+        validateRequiredQuestions(reservation, schedule);
+        Reservation savedReservation = reservationRepository.save(reservation);
+        return ReservationResponse.from(savedReservation, encryptionUtils);
+    }
+
+    @Transactional
     public ReservationResponse createReservation(ReservationRequest request) {
         EventSchedule schedule = loadEventScheduleOrThrow(request.getScheduleId());
         String encryptedPhoneNumber = encryptionUtils.encrypt(request.getGuestPhoneNumber());

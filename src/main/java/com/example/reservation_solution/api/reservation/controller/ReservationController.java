@@ -32,6 +32,12 @@ public class ReservationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping("/pessimistic")
+    public ResponseEntity<ReservationResponse> createReservationWithPessimisticLock(@Valid @RequestBody ReservationRequest request) {
+        ReservationResponse response = reservationService.createReservationWithPessimisticLock(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @GetReservationDocs
     @GetMapping("/{id}")
     public ResponseEntity<ReservationResponse> getReservation(@PathVariable Long id) {

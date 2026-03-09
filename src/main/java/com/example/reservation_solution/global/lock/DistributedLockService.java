@@ -24,11 +24,17 @@ public class DistributedLockService {
         try {
             boolean acquired = lock.tryLock(WAIT_TIME_SECONDS, TimeUnit.SECONDS);
             if (!acquired) {
+                log.warn("[LOCK_TIMEOUT] key={}, waitTime={}s", lockKey, WAIT_TIME_SECONDS);
                 throw LockAcquisitionException.timeout();
             }
-            return supplier.get();
+            long start = System.currentTimeMillis();
+            T result = supplier.get();
+            long elapsed = System.currentTimeMillis() - start;
+            log.info("[LOCK_HELD] key={}, duration={}ms", lockKey, elapsed);
+            return result;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            log.warn("[LOCK_INTERRUPTED] key={}", lockKey);
             throw LockAcquisitionException.interrupted();
         } finally {
             if (lock.isHeldByCurrentThread()) {
