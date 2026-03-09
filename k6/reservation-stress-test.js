@@ -107,12 +107,12 @@ export default function () {
   if (res.status === 201) {
     reservationCreated.add(1);
     serverErrorRate.add(0);
-  } else if (res.status === 409 || res.status === 400) {
-    // 정원 초과, 중복 예약 — 시스템이 정상적으로 거부
+  } else if (res.status === 409 || res.status === 400 || res.status === 429) {
+    // 정원 초과, 중복 예약, 락 대기 초과 — 시스템이 정상적으로 거부
     reservationRejected.add(1);
     serverErrorRate.add(0);
   } else {
-    // 5xx, 타임아웃 — 비관적 락 병목
+    // 5xx, 타임아웃 — 서버 병목
     serverError.add(1);
     serverErrorRate.add(1);
     console.log(`[VU ${__VU}] SERVER ERROR: ${res.status} - ${res.body}`);
