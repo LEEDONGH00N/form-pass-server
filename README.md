@@ -107,15 +107,17 @@
 ### 동시성 제어 (선착순 예약)
 
 ```
-요청 A ──▶ ┌─────────────────────────────────┐
-           │ EventSchedule (scheduleId = 1)  │
-           │ PESSIMISTIC_WRITE Lock 획득     │
-           │ reservedCount 검증 → 증가       │
-           │ 예약 생성 → Lock 해제           │
-요청 B ──▶ └─────────────────────────────────┘ ──▶ Lock 대기 후 순차 처리
+요청 A ──▶ ReservationFacade
+           └─ LockExecutor.executeWithLock("schedule:1")
+              └─ ReservationService (@Transactional 내부)
+                 └─ reservedCount 검증 → 증가 → 예약 생성
+요청 B ──▶ Lock 대기 후 순차 처리
 ```
 
-- `EventScheduleRepository`에서 `@Lock(PESSIMISTIC_WRITE)`로 row-level 락 적용
+- `InMemoryLockExecutor` (ReentrantLock) + Facade 패턴으로 락과 트랜잭션 분리
+- `ConcurrentHashMap<String, ReentrantLock>` — 키별 공정 락 (FIFO), `tryLock(5, SECONDS)`
+- 락은 `@Transactional` 바깥에서 획득하여 DB 커넥션 점유 시간 최소화
+- `LockExecutor` 인터페이스 기반 설계로 추후 분산 락(Redis 등) 전환 가능
 - `reservedCount >= maxCapacity` 시 `IllegalStateException` (409)
 - 동일 스케줄 + 전화번호 중복 예약 거부
 
@@ -137,6 +139,34 @@
 3. 클라이언트 → S3에 직접 PUT 업로드
 4. 클라이언트 → 이벤트 생성 시 fileUrl을 images 목록에 포함
 ```
+---
+
+## 아키텍처 진화 과정
+
+| 버전 | 동시성 제어 방식 | 문제점 / 개선 이유 |
+|------|-----------------|-------------------|
+| v1 | `@Lock(PESSIMISTIC_WRITE)` 비관적 락 | DB row-level 락으로 트랜잭션 전체 구간 동안 커넥션 점유 → 고부하 시 커넥션 풀 고갈 위험 |
+| v2 | Redis + Redisson 분산 락 | 단일 인스턴스 환경에 Redis 인프라 운영 비용이 과도, 장애 포인트 증가 |
+| v3 (현재) | 인메모리 `ReentrantLock` + Facade 패턴 | 락과 트랜잭션 분리로 커넥션 점유 최소화, 인프라 의존성 제거, `LockExecutor` 인터페이스로 확장성 유지 |
+
+각 의사결정의 상세 근거: [`docs/adr/`](docs/adr/)
+
+---
+
+## 테스트
+
+| 계층 | 전략 | 테스트 수 |
+|------|------|----------|
+| Service (단위) | `@ExtendWith(MockitoExtension.class)` + Mock | 46개 |
+| Repository (통합) | `@DataJpaTest` + H2 + QueryDSL | 8개 |
+| Controller (슬라이스) | `@WebMvcTest` + `@MockBean` | 10개 |
+| Context Load | `@SpringBootTest` | 1개 |
+| **합계** | | **65개** |
+
+```bash
+./gradlew clean test    # 전체 테스트 실행
+```
+
 ---
 
 ## 실행 방법

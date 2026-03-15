@@ -186,7 +186,7 @@ POST /api/reservations
 | 항목 | 현재 | 권장 |
 |------|------|------|
 | DB 커넥션 풀 | 10 | 20~30 |
-| EC2 인스턴스 | t2.micro | t3.small 이상 |
+| EC2 인스턴스 | t3.small | t3.medium 이상 |
 
 ```yaml
 # application.yml

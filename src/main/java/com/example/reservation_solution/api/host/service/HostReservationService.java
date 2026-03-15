@@ -12,6 +12,7 @@ import com.example.reservation_solution.api.auth.repository.HostRepository;
 import com.example.reservation_solution.api.event.repository.*;
 import com.example.reservation_solution.api.reservation.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,9 @@ public class HostReservationService {
     private final EventScheduleRepository eventScheduleRepository;
     private final HostRepository hostRepository;
     private final EncryptionUtils encryptionUtils;
+
+    @Value("${lock.pessimistic:false}")
+    private boolean usePessimisticLock;
 
     public DashboardResponse getDashboardStats(Long eventId, String hostEmail) {
         Event event = validateHostOwnership(eventId, hostEmail);
@@ -97,8 +101,13 @@ public class HostReservationService {
         Reservation reservation = loadReservationOrThrow(reservationId);
         validateHostOwnership(reservation, hostEmail);
         reservation.cancel();
-        EventSchedule schedule = reservation.getEventSchedule();
-        schedule.decrementReservedCount(reservation.getTicketCount());
+        if (usePessimisticLock) {
+            EventSchedule schedule = eventScheduleRepository.findByIdForUpdate(reservation.getEventSchedule().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
+            schedule.decrementReservedCount(reservation.getTicketCount());
+        } else {
+            reservation.getEventSchedule().decrementReservedCount(reservation.getTicketCount());
+        }
     }
 
     @Transactional
