@@ -11,6 +11,7 @@ import com.example.reservation_solution.api.event.repository.EventScheduleReposi
 import com.example.reservation_solution.api.event.repository.FormQuestionRepository;
 import com.example.reservation_solution.api.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +27,12 @@ public class ReservationService {
     private final FormQuestionRepository formQuestionRepository;
     private final EncryptionUtils encryptionUtils;
 
+    @Value("${lock.pessimistic:false}")
+    private boolean usePessimisticLock;
+
     @Transactional
     public ReservationResponse createReservation(ReservationRequest request) {
-        EventSchedule schedule = loadEventScheduleOrThrow(request.getScheduleId());
+        EventSchedule schedule = loadEventScheduleForWrite(request.getScheduleId());
         String encryptedPhoneNumber = encryptionUtils.encrypt(request.getGuestPhoneNumber());
         checkDuplicateReservation(request.getScheduleId(), encryptedPhoneNumber);
         schedule.incrementReservedCount(request.getTicketCount());
@@ -107,8 +111,12 @@ public class ReservationService {
     public void cancelReservation(Long id) {
         Reservation reservation = loadReservationOrThrow(id);
         reservation.cancel();
-        EventSchedule schedule = reservation.getEventSchedule();
-        schedule.decrementReservedCount(reservation.getTicketCount());
+        if (usePessimisticLock) {
+            EventSchedule schedule = loadEventScheduleForUpdate(reservation.getEventSchedule().getId());
+            schedule.decrementReservedCount(reservation.getTicketCount());
+        } else {
+            reservation.getEventSchedule().decrementReservedCount(reservation.getTicketCount());
+        }
     }
 
     public List<ReservationLookupResponse> lookupReservations(String guestName, String guestPhoneNumber) {
@@ -128,8 +136,16 @@ public class ReservationService {
         return reservation.getEventSchedule().getId();
     }
 
-    private EventSchedule loadEventScheduleOrThrow(Long scheduleId) {
+    private EventSchedule loadEventScheduleForWrite(Long scheduleId) {
+        if (usePessimisticLock) {
+            return loadEventScheduleForUpdate(scheduleId);
+        }
         return eventScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
+    }
+
+    private EventSchedule loadEventScheduleForUpdate(Long scheduleId) {
+        return eventScheduleRepository.findByIdForUpdate(scheduleId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스케줄입니다."));
     }
 

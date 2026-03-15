@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 @Component
-@Profile("!redis")
+@Profile("!pessimistic")
 public class InMemoryLockExecutor implements LockExecutor {
 
     private final ConcurrentHashMap<String, ReentrantLock> lockMap = new ConcurrentHashMap<>();
