@@ -59,7 +59,7 @@ XxxRepositoryImpl implements XxxRepositoryCustom                       ← Query
 
 - **Lombok** is used throughout (entities, DTOs). Use `@Getter`, `@NoArgsConstructor(access = PROTECTED)` on entities; `@Builder` on DTOs
 - **Error messages are in Korean** (e.g., `"존재하지 않는 이벤트입니다"`)
-- **Exception pattern**: Services throw `IllegalArgumentException` (400), `IllegalStateException` (409), `AccessDeniedException` (403), or `BusinessException` subclasses (`BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `UnauthorizedException`). All handled by `GlobalExceptionHandler`
+- **Exception pattern**: Services throw `IllegalArgumentException` (400), `IllegalStateException` (409), `AccessDeniedException` (403), or `BusinessException` subclasses (`BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `UnauthorizedException`, `LockAcquisitionException` (429), `EmailSendException`). All handled by `GlobalExceptionHandler`
 - **Host ownership validation**: Services verify `event.getHost().getEmail().equals(hostEmail)` before allowing mutations
 - **Transactions**: Services use `@Transactional(readOnly = true)` at class level, `@Transactional` on write methods
 - **Phone number encryption**: Guest phone numbers are encrypted via `EncryptionUtils` (AES-256) before storage and decrypted on read
@@ -70,8 +70,9 @@ XxxRepositoryImpl implements XxxRepositoryCustom                       ← Query
 
 - `EventSchedule.reservedCount` is protected by **인메모리 락** (`ReentrantLock`) via Facade pattern
 - `LockExecutor` 인터페이스 기반 설계로 추후 분산 락(Redis 등) 전환 가능
-- `InMemoryLockExecutor`: `ConcurrentHashMap<String, ReentrantLock>` — 키별 공정 락 (FIFO), `tryLock(5, SECONDS)`
-- Facade classes (`ReservationFacade`, `HostReservationFacade`) acquire `schedule:{scheduleId}` lock **outside** `@Transactional` to minimize DB connection hold time
+- `InMemoryLockExecutor` (`@Profile("!redis")`): `ConcurrentHashMap<String, ReentrantLock>` — 키별 공정 락 (FIFO), `tryLock(5, SECONDS)`. Lock timeout → `LockAcquisitionException` (429)
+- `LockKeyGenerator.schedule(scheduleId)` → lock key `"schedule:{id}"`
+- Facade classes (`ReservationFacade`, `HostReservationFacade`) acquire lock **outside** `@Transactional` to minimize DB connection hold time
 - Lock targets: `createReservation`, `cancelReservation` (both guest and host)
 - Duplicate reservation check: same phone number + same schedule combination is rejected
 
@@ -96,7 +97,9 @@ XxxRepositoryImpl implements XxxRepositoryCustom                       ← Query
 - `local`: localhost MySQL on port 3306, `ddl-auto: create`, debug logging
 - `test`: H2 in-memory, used automatically in test runs
 
-## CI/CD
+## Infrastructure & CI/CD
+
+**Production**: EC2 (Nginx reverse proxy + SSL) → Spring Boot JAR → RDS MySQL + S3 + Google SMTP
 
 - **CI**: PRs to `main` → `./gradlew clean test` + publish test results as PR comments
 - **CD**: Push to `main` → build JAR (skip tests) → SCP to EC2 → run deploy script
@@ -105,7 +108,7 @@ XxxRepositoryImpl implements XxxRepositoryCustom                       ← Query
 ## Key Dependencies
 
 - **JWT**: jjwt 0.11.5 | **AWS SDK**: v2.27.21 (S3) | **API Docs**: Springdoc OpenAPI 2.7.0
-- **Monitoring**: Spring Actuator + Micrometer Prometheus | **Cache**: Caffeine
+- **Monitoring**: Spring Actuator + Micrometer Prometheus | **Cache**: Caffeine (이메일 인증코드 TTL 관리)
 - **QueryDSL**: 5.1.0 (jakarta classifier) | Q클래스: `build/generated/` 하위 자동 생성
 
 ## 필수 참조 문서
